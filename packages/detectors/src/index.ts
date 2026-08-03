@@ -1,0 +1,1 @@
+export const DETECTORS_PACKAGE_PLACEHOLDER = true;

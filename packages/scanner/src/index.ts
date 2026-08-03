@@ -1,0 +1,1 @@
+export const SCANNER_PACKAGE_PLACEHOLDER = true;
