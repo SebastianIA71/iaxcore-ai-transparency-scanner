@@ -30,10 +30,14 @@ describe.skipIf(!process.env.DATABASE_POOLED_URL)("SKIP LOCKED — cola bajo con
   it("varios workers compitiendo por la cola nunca reclaman el mismo job dos veces", async () => {
     const jobCount = 5;
     for (let i = 0; i < jobCount; i++) {
+      // IP distinta por evaluación: el índice único parcial
+      // evaluations_one_active_per_ip permite como máximo una evaluación
+      // queued/running por IP, y este test necesita varias a la vez.
       const evaluation = await createEvaluation(db, {
         requestedUrl: `https://example.com/${i}`,
         methodVersion: "iaxcore-ai-transparency@0.1.0",
         pagesRequested: 1,
+        requesterIpHash: `queue-test-ip-hash-${i}`,
       });
       evaluationIds.push(evaluation.id);
       const job = await db.scanJob.create({ data: { evaluationId: evaluation.id } });

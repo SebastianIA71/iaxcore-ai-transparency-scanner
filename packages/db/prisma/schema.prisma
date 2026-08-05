@@ -64,6 +64,16 @@ model Evaluation {
   manifest       Json             @default("{}")
   reportHash     String?
   signatureId    String?
+  // §9: rate limiting por IP en POST /api/scans (cuota diaria + concurrencia
+  // máxima 1). Se guarda el hash, no la IP en claro — no hace falta el valor
+  // real para contar cuántas evaluaciones pidió la misma IP. La concurrencia
+  // máxima además se aplica a nivel de DB con un índice único parcial
+  // ("evaluations_one_active_per_ip", migración
+  // 20260805124306_enforce_one_active_evaluation_per_ip) que no es
+  // expresable en este DSL (no hay sintaxis de índice parcial) — cierra la
+  // carrera TOCTOU que el chequeo en application-layer (rateLimit.ts) por
+  // sí solo no puede evitar.
+  requesterIpHash String
 
   scanJob         ScanJob?
   findings        Finding[]
@@ -71,6 +81,8 @@ model Evaluation {
   leads           Lead[]
 
   @@map("evaluations")
+  @@index([requesterIpHash, createdAt])
+  @@index([requesterIpHash, status])
 }
 
 // Cola PostgreSQL con SKIP LOCKED (§8, §10-Fase 1) — sin Redis.

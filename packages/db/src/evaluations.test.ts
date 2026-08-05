@@ -30,7 +30,12 @@ const completeInput = {
 describe("createEvaluation", () => {
   it("crea la evaluación en estado queued con pagesAnalyzed en 0", async () => {
     const db = fakeDb();
-    await createEvaluation(db, { requestedUrl: "https://example.com", methodVersion: "v1", pagesRequested: 5 });
+    await createEvaluation(db, {
+      requestedUrl: "https://example.com",
+      methodVersion: "v1",
+      pagesRequested: 5,
+      requesterIpHash: "test-ip-hash",
+    });
     expect(db.evaluation.create).toHaveBeenCalledWith({
       data: expect.objectContaining({ status: "queued", pagesAnalyzed: 0, requestedUrl: "https://example.com" }),
     });

@@ -6,6 +6,7 @@ export interface CreateEvaluationInput {
   requestedUrl: string;
   methodVersion: string;
   pagesRequested: number;
+  requesterIpHash: string;
 }
 
 export interface CompleteEvaluationInput {
@@ -40,6 +41,7 @@ export function createEvaluation(db: EvaluationsDb, input: CreateEvaluationInput
       requestedUrl: input.requestedUrl,
       methodVersion: input.methodVersion,
       pagesRequested: input.pagesRequested,
+      requesterIpHash: input.requesterIpHash,
       status: "queued",
       pagesAnalyzed: 0,
       manifest: {},

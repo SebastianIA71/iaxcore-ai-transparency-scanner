@@ -34,6 +34,7 @@ describe.skipIf(!canRun)("worker — pipeline completo contra Postgres real", ()
       requestedUrl: "https://example.com/worker-e2e",
       methodVersion: "iaxcore-ai-transparency@0.1.0",
       pagesRequested: 1,
+      requesterIpHash: "worker-integration-test-ip-hash",
     });
     evaluationIds.push(evaluation.id);
     const job = await db.scanJob.create({ data: { evaluationId: evaluation.id } });

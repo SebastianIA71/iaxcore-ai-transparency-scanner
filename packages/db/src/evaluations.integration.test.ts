@@ -28,6 +28,7 @@ describe.skipIf(!process.env.DATABASE_POOLED_URL)("inmutabilidad de Evaluation c
       requestedUrl: "https://example.com",
       methodVersion: "iaxcore-ai-transparency@0.1.0",
       pagesRequested: 5,
+      requesterIpHash: "integration-test-ip-hash",
     });
     createdIds.push(evaluation.id);
 

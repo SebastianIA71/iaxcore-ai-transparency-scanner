@@ -5,3 +5,4 @@ export * from "./t1.js";
 export * from "./entities.js";
 export * from "./detector.js";
 export * from "./signing.js";
+export * from "./privacy.js";
