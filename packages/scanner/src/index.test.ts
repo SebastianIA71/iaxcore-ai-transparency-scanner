@@ -19,4 +19,8 @@ describe("superficie pública de @iaxcore/scanner", () => {
     expect(typeof scanner.selectPages).toBe("function");
     expect(typeof scanner.createLocalEvidenceStore).toBe("function");
   });
+
+  it("exporta el manejo del banner de consentimiento", () => {
+    expect(typeof scanner.handleConsentBanner).toBe("function");
+  });
 });
