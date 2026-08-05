@@ -6,3 +6,5 @@ export * from "./entities.js";
 export * from "./detector.js";
 export * from "./signing.js";
 export * from "./privacy.js";
+export * from "./fix.js";
+export * from "./rescan.js";

@@ -1,4 +1,5 @@
 import { createServer, type Server } from "node:http";
+import { generateAiDisclosureFix } from "@iaxcore/core";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { runT1Detection } from "./t1Detector.js";
 import { listenOnPort80 } from "./testHelpers.js";
@@ -59,6 +60,14 @@ const PAGES: Record<string, string> = {
     revealText: "Hi! I'm here to help using our AI-powered chatbot, available any time.",
   }),
 
+  // §10-Fase 4, gate de salida: mismo texto que "/ai-no-disclosure"
+  // (action_recommended), con el aviso de generateAiDisclosureFix()
+  // antepuesto — simula que quien opera el sitio aplicó el fix tal cual lo
+  // generó el motor, sin reemplazar el mensaje que ya tenía.
+  "/ai-no-disclosure-fixed": widgetPage({
+    revealText: `${generateAiDisclosureFix("en").noticeText} Hi! I'm here to help using our AI-powered chatbot, available any time.`,
+  }),
+
   "/ai-vendor": widgetPage({
     revealText: "Hi! How can I help you today?",
     extraHead: `<script>window.adaEmbed = {}; window.adaSettings = {};</script>`,
@@ -82,7 +91,7 @@ describe("runT1Detection — §5.1/§10-Fase 3: T1 de extremo a extremo contra f
       res.end(body);
     });
     await listenOnPort80(server);
-  });
+  }, 30_000);
 
   afterAll(async () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
@@ -152,6 +161,24 @@ describe("runT1Detection — §5.1/§10-Fase 3: T1 de extremo a extremo contra f
       assistant_avatar_type: "none",
     });
     expect(findingFor(result, "t1.assessment")).toMatchObject({ assessmentStatus: "action_recommended" });
+  }, 30_000);
+
+  it("§10-Fase 4, gate de salida: aplicar generateAiDisclosureFix() cambia la evaluación de action_recommended a aligned, en una corrida independiente de la anterior", async () => {
+    const before = await runT1Detection("eval_before_fix", `${ORIGIN}/ai-no-disclosure`, T1_OPTIONS);
+    const after = await runT1Detection("eval_after_fix", `${ORIGIN}/ai-no-disclosure-fixed`, T1_OPTIONS);
+
+    expect(findingFor(before, "t1.assessment")).toMatchObject({ assessmentStatus: "action_recommended" });
+    expect(findingFor(after, "t1.assessment")).toMatchObject({ assessmentStatus: "aligned" });
+    expect(findingFor(after, "t1.disclosure")).toMatchObject({
+      observationStatus: "detected",
+      detail: { disclosure_timing: "on_open" },
+    });
+
+    // "sin editar la evaluación anterior" — dos corridas independientes,
+    // cada una con su propio evaluationId; runT1Detection no comparte
+    // estado entre llamadas (cada una abre su propio navegador/página).
+    expect(before.findings.every((f) => f.evaluationId === "eval_before_fix")).toBe(true);
+    expect(after.findings.every((f) => f.evaluationId === "eval_after_fix")).toBe(true);
   }, 30_000);
 
   it("proveedor ai_native conocido (firma por variable global) clasifica ai_evidence sin depender del texto del panel", async () => {
