@@ -6,4 +6,10 @@ describe("superficie pública de @iaxcore/scanner", () => {
     expect(typeof scanner.checkUrl).toBe("function");
     expect(typeof scanner.classifyAddress).toBe("function");
   });
+
+  it("exporta el navegador seguro y su guard de requests", () => {
+    expect(typeof scanner.launchSecureBrowser).toBe("function");
+    expect(typeof scanner.createSecureContext).toBe("function");
+    expect(typeof scanner.installSsrfGuard).toBe("function");
+  });
 });
