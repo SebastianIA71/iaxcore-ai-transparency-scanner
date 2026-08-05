@@ -70,7 +70,7 @@ describe("installSsrfGuard — intercepta todo, no solo la navegación principal
     // dirección en sí habría pasado o no.
     const context = await createSecureContext(browser);
     const state = installSsrfGuard(context, {
-      limits: { maxRequests: 1 },
+      limits: { maxRequests: 1, maxRedirects: 5, maxResourceBytes: 10 * 1024 * 1024, maxTotalBytes: 50 * 1024 * 1024 },
       resolveHostname: async () => "10.0.0.1",
     });
     const page = await context.newPage();
