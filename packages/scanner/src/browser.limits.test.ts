@@ -2,6 +2,7 @@ import { createServer, type Server } from "node:http";
 import type { Browser } from "playwright";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createSecureContext, installSsrfGuard, launchSecureBrowser } from "./browser.js";
+import { listenOnPort80 } from "./testHelpers.js";
 
 // fake-public.test no existe de verdad — se resuelve a 127.0.0.1 vía
 // --host-resolver-rules SOLO para este proceso de Chromium, así que el
@@ -67,10 +68,7 @@ describe("installSsrfGuard — límites de tamaño y redirecciones (§9)", () =>
       res.writeHead(404);
       res.end();
     });
-    await new Promise<void>((resolve, reject) => {
-      server.once("error", reject);
-      server.listen(80, "127.0.0.1", resolve);
-    });
+    await listenOnPort80(server);
 
     browser = await launchSecureBrowser([`--host-resolver-rules=MAP ${FAKE_PUBLIC_HOSTNAME} 127.0.0.1`]);
   });

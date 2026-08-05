@@ -10,6 +10,7 @@ import {
   releaseScanJobAfterFailure,
   type PrismaClient,
 } from "@iaxcore/db";
+import { runScan } from "@iaxcore/scanner";
 
 export interface WorkerConfig {
   workerId: string;
@@ -37,6 +38,16 @@ export async function runWorkerOnce(db: PrismaClient, config: WorkerConfig): Pro
     await markEvaluationRunning(db, job.evaluationId);
     const evaluation = await db.evaluation.findUniqueOrThrow({ where: { id: job.evaluationId } });
 
+    // §10-Fase 2: navega de verdad (SSRF guard, robots.txt, selección de
+    // páginas, banner de consentimiento) y produce el manifest que exige el
+    // gate de esa fase. `evaluation.pagesRequested` ya es el tope acordado
+    // en la creación (§9: "hasta cinco páginas"), no algo que el escaneo
+    // decida — se lo pasamos como límite, no lo recalculamos aquí.
+    const scan = await runScan(evaluation.requestedUrl, { maxPages: evaluation.pagesRequested });
+
+    // El JSON firmado no incluye todavía manifest/páginas: T1/T2 (Fase
+    // 3/5) son lo que da contenido real a `findings`, y no existen aún —
+    // firmar de más ahora solo obligaría a re-firmar cuando lleguen.
     const canonicalReport = {
       evaluationId: evaluation.id,
       requestedUrl: evaluation.requestedUrl,
@@ -56,9 +67,13 @@ export async function runWorkerOnce(db: PrismaClient, config: WorkerConfig): Pro
     });
 
     await completeEvaluation(db, evaluation.id, {
-      finalUrl: evaluation.requestedUrl,
-      pagesAnalyzed: 0,
-      manifest: evaluation.manifest ?? {},
+      finalUrl: scan.finalUrl,
+      pagesAnalyzed: scan.pagesAnalyzed,
+      // scan.manifest is plain JSON data, but ScanManifest's typed shape
+      // (and its `unknown`-valued catchall) doesn't structurally match
+      // Prisma's InputJsonValue — round-trip it rather than reaching into
+      // @iaxcore/db's generated Prisma types just for a cast.
+      manifest: JSON.parse(JSON.stringify(scan.manifest)),
       reportHash: canonicalHash,
       signatureId: config.signingKeyId,
     });

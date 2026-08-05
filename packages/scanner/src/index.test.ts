@@ -23,4 +23,8 @@ describe("superficie pública de @iaxcore/scanner", () => {
   it("exporta el manejo del banner de consentimiento", () => {
     expect(typeof scanner.handleConsentBanner).toBe("function");
   });
+
+  it("exporta el orquestador de escaneo de principio a fin", () => {
+    expect(typeof scanner.runScan).toBe("function");
+  });
 });
