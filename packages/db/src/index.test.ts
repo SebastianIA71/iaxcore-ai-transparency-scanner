@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { DB_PACKAGE_PLACEHOLDER } from "./index.js";
+import * as db from "./index.js";
 
-describe("bootstrap", () => {
-  it("loads the db package", () => {
-    expect(DB_PACKAGE_PLACEHOLDER).toBe(true);
+describe("superficie pública de @iaxcore/db", () => {
+  it("exporta los factories de cliente, las transiciones de Evaluation y la cola", () => {
+    expect(typeof db.createPooledClient).toBe("function");
+    expect(typeof db.createDirectClient).toBe("function");
+    expect(typeof db.createEvaluation).toBe("function");
+    expect(typeof db.markEvaluationRunning).toBe("function");
+    expect(typeof db.completeEvaluation).toBe("function");
+    expect(typeof db.failEvaluation).toBe("function");
+    expect(typeof db.claimNextScanJob).toBe("function");
   });
 });

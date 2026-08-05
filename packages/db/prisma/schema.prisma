@@ -1,0 +1,174 @@
+// IAXCORE AI Transparency Scanner — modelo de datos mínimo (spec v0.5.2 §15).
+// Enums Prisma cubren el vocabulario cerrado de §6. detectorId y report
+// format se dejan como String validado en la frontera de escritura por
+// packages/core (zod) — sus valores usan puntos ("t1.channel"), que no son
+// identificadores válidos de enum de Prisma.
+
+// Prisma 7: las URLs de conexión ya no viven en el schema. El CLI (migrate,
+// validate) las toma de prisma.config.ts; PrismaClient en runtime las recibe
+// vía un driver adapter (@prisma/adapter-pg) en packages/db/src/client.ts —
+// pooled para apps/web, directa para el polling SKIP LOCKED de apps/worker.
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EvaluationStatus {
+  queued
+  running
+  completed
+  failed
+}
+
+enum ObservationStatus {
+  detected
+  not_detected
+  partially_detected
+  not_assessable
+  error
+}
+
+enum AssessmentStatus {
+  aligned
+  action_recommended
+  not_applicable
+  insufficient_evidence
+  experimental
+}
+
+enum EvidenceConfidenceBand {
+  high
+  medium
+  low
+}
+
+// §7/§10-Fase 1: una evaluación completada es inmutable. La inmutabilidad se
+// aplica en packages/db/src/evaluations.ts (transiciones de estado
+// condicionales), no como constraint de base de datos — Fase 1 no introduce
+// triggers/RLS todavía.
+model Evaluation {
+  id             String           @id @default(cuid())
+  requestedUrl   String
+  finalUrl       String?
+  status         EvaluationStatus @default(queued)
+  methodVersion  String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  completedAt    DateTime?
+  pagesRequested Int
+  pagesAnalyzed  Int              @default(0)
+  manifest       Json             @default("{}")
+  reportHash     String?
+  signatureId    String?
+
+  scanJob         ScanJob?
+  findings        Finding[]
+  reportArtifacts ReportArtifact[]
+  leads           Lead[]
+
+  @@map("evaluations")
+}
+
+// Cola PostgreSQL con SKIP LOCKED (§8, §10-Fase 1) — sin Redis.
+model ScanJob {
+  id           String    @id @default(cuid())
+  evaluationId String    @unique
+  evaluation   Evaluation @relation(fields: [evaluationId], references: [id])
+  attempts     Int       @default(0)
+  maxAttempts  Int       @default(3)
+  availableAt  DateTime  @default(now())
+  lockedAt     DateTime?
+  lockedBy     String?
+  heartbeatAt  DateTime?
+  lastError    String?
+  finishedAt   DateTime?
+
+  @@map("scan_jobs")
+  @@index([lockedAt, availableAt])
+}
+
+// §15: incluye t1.channel, t1.ai_evidence, t1.disclosure como filas
+// separadas, más el finding agregado t1.assessment (único con
+// assessmentStatus no nulo).
+model Finding {
+  id                String                 @id @default(cuid())
+  evaluationId      String
+  evaluation        Evaluation             @relation(fields: [evaluationId], references: [id])
+  detectorId        String
+  observationStatus ObservationStatus
+  assessmentStatus  AssessmentStatus?
+  confidenceBand    EvidenceConfidenceBand
+  summaryKey        String
+  detail            Json                   @default("{}")
+  createdAt         DateTime               @default(now())
+
+  evidence Evidence[]
+
+  @@map("findings")
+  @@index([evaluationId, detectorId])
+}
+
+model Evidence {
+  id          String   @id @default(cuid())
+  findingId   String
+  finding     Finding  @relation(fields: [findingId], references: [id])
+  kind        String
+  location    String
+  observedAt  DateTime
+  contentHash String
+  // §9: purgable a 90 días; tras la purga solo queda contentHash.
+  storagePath String?
+  payload     Json?
+  method      String
+  origin      String
+
+  @@map("evidence")
+  @@index([findingId])
+}
+
+model ReportArtifact {
+  id            String   @id @default(cuid())
+  evaluationId  String
+  evaluation    Evaluation @relation(fields: [evaluationId], references: [id])
+  // "json" | "pdf" — validado por packages/core (reportArtifactSchema).
+  format        String
+  canonicalHash String
+  // §8: el PDF no lleva firma propia; signature/keyId solo aplican a format "json".
+  signature     String?
+  keyId         String?
+  createdAt     DateTime @default(now())
+
+  shareLinks ShareLink[]
+
+  @@map("report_artifacts")
+  @@index([evaluationId])
+}
+
+model ShareLink {
+  id               String    @id @default(cuid())
+  reportArtifactId String
+  reportArtifact   ReportArtifact @relation(fields: [reportArtifactId], references: [id])
+  tokenHash        String    @unique
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  lastAccessedAt   DateTime?
+
+  @@map("share_links")
+}
+
+model Lead {
+  id                   String   @id @default(cuid())
+  email                String
+  evaluationId         String
+  evaluation           Evaluation @relation(fields: [evaluationId], references: [id])
+  consent              Json     @default("{}")
+  priceInterestClicked Boolean  @default(false)
+  createdAt            DateTime @default(now())
+
+  @@map("leads")
+  @@index([evaluationId])
+}

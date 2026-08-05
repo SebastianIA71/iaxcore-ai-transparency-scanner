@@ -1,0 +1,25 @@
+# Fase 1 (§8, §10): Postgres local para desarrollo. El piloto en producción
+# usa el proyecto Supabase dedicado "iaxcore-scanner" (ver .env.example);
+# esto es solo para el loop interno de desarrollo y las pruebas de
+# integración de packages/db (queue.integration.test.ts, etc.) sin tocar
+# datos reales.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: iaxcore
+      POSTGRES_PASSWORD: iaxcore
+      POSTGRES_DB: iaxcore
+    ports:
+      - "5432:5432"
+    volumes:
+      - iaxcore_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iaxcore -d iaxcore"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  iaxcore_postgres_data:

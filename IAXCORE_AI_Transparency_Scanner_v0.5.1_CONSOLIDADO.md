@@ -1,8 +1,8 @@
-> **Handoff único para Claude Code/Codex.** Este documento fusiona la propuesta específica v0.5 con el Anexo de correcciones v0.5→v0.5.1 (el anexo prevalece en caso de conflicto) y el contexto de producto de la mini propuesta IAXCORE v0.2. No quedan decisiones pendientes de resolver por el agente salvo las señaladas explícitamente en la §"Decisiones que Claude Code NO debe tomar solo". Construir por fases; no avanzar de fase sin el gate anterior en verde.
+> **Handoff único para Claude Code/Codex.** Este documento fusiona la especificación v0.5.1 con el Anexo de actualización v0.5.1→v0.5.2 (el anexo prevalece en caso de conflicto; ya integrado en el texto, no como apéndice separado). La actualización incorpora: (1) la referencia normativa al AI Omnibus (Reglamento (UE) 2026/1744) verificada contra fuentes oficiales de la UE, (2) dos sub-checks de aplicabilidad en el detector T1, y (3) captura estructurada de señales de la excepción de obviedad. **No amplía el alcance del piloto ni reabre gates ya superados.** Construir por fases; no avanzar de fase sin el gate anterior en verde.
 
-# IAXCORE · AI Transparency Scanner — Especificación de implementación v0.5.1
+# IAXCORE · AI Transparency Scanner — Especificación de implementación v0.5.2
 
-*Versión de consenso · sustituye a v0.5 · incorpora el Anexo de correcciones bloqueantes*
+*Versión de consenso · sustituye a v0.5.1 · incorpora actualización regulatoria y refinamiento de T1*
 
 **Tesis del producto:** una web autónoma que analiza una URL pública, documenta señales observables de transparencia de IA, ofrece correcciones concretas y permite verificar el resultado mediante un informe fechado y firmado. No determina por sí sola el cumplimiento legal del AI Act.
 
@@ -12,7 +12,7 @@
 
 IAXCORE es la marca paraguas: un estándar abierto, versionado y basado en evidencia para evaluar calidad, confianza y preparación digital observable de un dominio. No sustituye auditorías legales, de seguridad o accesibilidad manuales; mide señales públicas, reproducibles y comparables. El ciclo de producto completo es **Scan → Fix → Rescan → Verify**, y solo se incorporan utilidades que corrijan un hallazgo de IAXCORE, generen evidencia o refuercen la verificación (quedan fuera de la marca: PDF a Word, unir PDFs, QR de menús/Wi-Fi, facturación, acortadores, eliminación de fondos, transcripción — pueden ser negocios independientes pero diluyen la marca).
 
-**El AI Transparency Scanner (T1/T2/T3) es la primera vertical vertical de ese estándar**, y este documento es su especificación de implementación completa. No se implementa en este piloto: score global multi-área, certificación legal, rankings públicos, verificación de propietario, badge, monitorización, ni el resto de herramientas Fix (Security Headers, robots.txt, Sitemap, Metadata, Favicon/PWA, Image Optimizer, Link Checker) — esas quedan documentadas aquí solo como **referencia de arquitectura futura**, para que el modelo de datos y el motor de reglas del scanner no cierren puertas a que otros inspectores se añadan después con la misma forma (`Evaluation` → `Finding` → `Evidence` → `ReportArtifact`).
+**El AI Transparency Scanner (T1/T2/T3) es la primera vertical de ese estándar**, y este documento es su especificación de implementación completa. No se implementa en este piloto: score global multi-área, certificación legal, rankings públicos, verificación de propietario, badge, monitorización, ni el resto de herramientas Fix (Security Headers, robots.txt, Sitemap, Metadata, Favicon/PWA, Image Optimizer, Link Checker) — esas quedan documentadas aquí solo como **referencia de arquitectura futura**, para que el modelo de datos y el motor de reglas del scanner no cierren puertas a que otros inspectores se añadan después con la misma forma (`Evaluation` → `Finding` → `Evidence` → `ReportArtifact`).
 
 Modelo comercial futuro de referencia (no se construye en este piloto): Free (una página, hallazgos limitados, PDF con marca), Pro 12–19 €/mes (dominio completo, histórico, reanálisis, herramientas Fix), Agency 49–99 €/mes (multi-dominio, marca blanca, API limitada), Enterprise (integración y gobierno corporativo).
 
@@ -22,7 +22,7 @@ Modelo comercial futuro de referencia (no se construye en este piloto): Free (un
 
 El MVP **no** es un "escáner de cumplimiento del artículo 50". Es un **escáner de señales observables de transparencia de IA**, con un control principal evaluable, un bloque informativo y un bloque experimental **que no se construye en este piloto** (ver §5.3 y §10).
 
-| Elemento | Decisión v0.5.1 |
+| Elemento | Decisión v0.5.2 |
 |---|---|
 | Producto | IAXCORE AI Transparency Scanner |
 | Entrada | Una URL pública |
@@ -69,6 +69,8 @@ Propuesta pública de valor: *"Comprueba qué señales de transparencia de IA pu
 
 El artículo 50 del Reglamento (UE) 2024/1689 se aplica desde el 2 de agosto de 2026. Las guías de la Comisión distinguen obligaciones de proveedores y deployers, y exigen que la información sobre una interacción directa con IA se proporcione desde el inicio, de forma clara, distinguible y accesible [R1][R2].
 
+**Actualización v0.5.2:** el Reglamento (UE) 2026/1744 ("AI Omnibus"), en vigor desde el 27 de julio de 2026, modificó el calendario del AI Act [R6][R7]. Introduce una transición limitada hasta el **2 de diciembre de 2026**, aplicable **exclusivamente al marcado técnico del artículo 50.2** para sistemas generativos puestos en el mercado o en servicio antes del 2 de agosto de 2026 [R8]. Esta transición **no afecta al artículo 50.1** (aviso de interacción con IA), que es el único control evaluable de este piloto (T1). No se implementa ningún cambio de comportamiento en T1 por este motivo; se documenta aquí por trazabilidad y para que `/method` cite la normativa vigente completa, no solo el estado previo al Omnibus.
+
 | Área | Qué puede observar IAXCORE | Qué no puede concluir |
 |---|---|---|
 | Interacción con IA | Canal conversacional, evidencia de IA, aviso inicial, visibilidad y accesibilidad. | Que todo el sistema cumpla jurídicamente en cualquier contexto. |
@@ -77,7 +79,7 @@ El artículo 50 del Reglamento (UE) 2024/1689 se aplica desde el 2 de agosto de 
 
 **Lenguaje obligatorio:** usar "detectado", "no detectado dentro del alcance", "no verificable", "evidencia insuficiente" y "acción recomendada". Prohibir "cumple", "incumple", "certificado", "seguro", "garantizado" y equivalentes — test automático de copy debe fallar el build si aparecen.
 
-**Excepción de "obviedad" (Art. 50(1)):** existe un caso donde el motor puede concluir de más — un canal obviamente presentado como IA podría estar exento del aviso formal. La mitigación es de **copy, no de código**: el texto de `action_recommended` dirá siempre "se recomienda añadir un aviso explícito" y **nunca** "falta un aviso obligatorio". El `detail` de ese finding incluye `context_exceptions_note: true`.
+**Excepción de "obviedad" (Art. 50(1)):** existe un caso donde el motor puede concluir de más — un canal obviamente presentado como IA podría estar exento del aviso formal. La Comisión indica que esta excepción debe interpretarse restrictivamente [R2][R8]. La mitigación es de **copy, no de código**: el texto de `action_recommended` dirá siempre "se recomienda añadir un aviso explícito" y **nunca** "falta un aviso obligatorio". El `detail` de ese finding incluye `context_exceptions_note: true` **y**, a partir de v0.5.2, un objeto `obviousness_signals` con evidencia estructurada (ver §5.1 y §15) para que una revisión humana futura no dependa de texto libre.
 
 ---
 
@@ -91,13 +93,23 @@ Se ejecuta en tres capas que nunca deben confundirse, y **produce tres sub-findi
 2. `t1.ai_evidence` — evidencia de que el canal utiliza un sistema de IA.
 3. `t1.disclosure` — inspección del aviso de interacción con IA antes o al inicio del primer intercambio.
 
+**Actualización v0.5.2 — dos criterios de aplicabilidad añadidos a `t1.channel`:** la aplicabilidad del artículo 50.1 requiere cuatro criterios acumulativos según la guía de la Comisión: (1) sistema de IA, (2) intercambio genuino con personas — no solo recogida de datos o salida automática simple, (3) interacción directa **sin intermediario humano** que comunique el resultado, (4) con **personas físicas** [R2][R8]. La v0.5.1 cubría (1) y (2) implícitamente pero no testeaba (3) ni (4) de forma explícita. Se añade el campo:
+
+```
+t1.channel.human_intermediary_detected: boolean
+```
+
+- Si el canal enruta a una persona humana que comunica el resultado final (p. ej. "un agente te responderá por email en 24h", formulario sin respuesta automática), `t1.channel` deriva a `not_detected` con `human_intermediary_detected: true`.
+- Si el canal es exclusivamente máquina-a-máquina (webhook, API, integración sin exposición a persona física), igualmente `not_detected`.
+- Esto es una corrección de **qué cuenta como canal**, no una dimensión nueva de resultado — mismo principio que evitó introducir `applicability` como campo separado en v0.5.1.
+
 El `assessmentStatus` existe **solo a nivel de control T1**, derivado de los tres sub-findings por una función pura y testeada: `deriveT1Assessment(channel, ai_evidence, disclosure)`. No se introduce una dimensión `applicability` separada: lo que faltaba era granularidad de findings, no un campo nuevo.
 
-Tabla de derivación (sustituye a la tabla única de estados de la v0.5, que contradecía el modelo de §6):
+Tabla de derivación:
 
 | `t1.channel` | `t1.ai_evidence` | `t1.disclosure` | `assessmentStatus` (T1) | Nota |
 |---|---|---|---|---|
-| `not_detected` | — | — | `not_applicable` | No hay canal conversacional. |
+| `not_detected` (incl. `human_intermediary_detected: true`) | — | — | `not_applicable` | No hay canal conversacional aplicable, o el canal deriva a una persona humana / es máquina-a-máquina. |
 | `detected` | `not_detected`, `evidence_of_human: true` | — | `not_applicable` | Chat humano explícito (ver A3 más abajo). Copy: "Se detectó un canal de atención que se declara atendido por personas; las señales de transparencia de IA no aplican dentro del alcance observado." |
 | `detected` | `not_detected` (sin evidencia de humano ni de IA) | — | `insufficient_evidence` | Ambigüedad real (p. ej. widget tipo Intercom sin señales en ningún sentido). |
 | `detected` | `detected` | `detected`, visible antes del primer input posible | `aligned` | Incluye `disclosure_timing: "on_open"` si el aviso aparece al abrir el panel y antes de poder enviar el primer mensaje (ver A2). |
@@ -106,6 +118,19 @@ Tabla de derivación (sustituye a la tabla única de estados de la v0.5, que con
 | `error` (el escáner es bloqueado o falla) | — | — | `insufficient_evidence` | |
 
 **Restricción dura:** el motor puede abrir el widget, pero no debe enviar mensajes, crear conversaciones, activar flujos comerciales ni aceptar términos en nombre del visitante.
+
+**Captura de evidencia de obviedad (`obviousness_signals`):** cuando `context_exceptions_note: true` en `t1.disclosure`, el `detail` del finding debe incluir:
+
+```json
+"obviousness_signals": {
+  "assistant_name_suggests_ai": boolean,
+  "assistant_avatar_type": "robot_icon | human_photo | abstract | none",
+  "simulates_human_identity": boolean,
+  "initial_message_sample": "string (primeros ~200 caracteres)"
+}
+```
+
+Esto no automatiza ninguna decisión sobre si la excepción de obviedad aplica — el motor sigue sin poder decidirlo. Solo deja evidencia estructurada y reproducible para revisión humana posterior, en línea con la regla de que toda conclusión debe poder vincularse a evidencia, no solo a una nota de texto libre.
 
 ### 5.2 T2 · Visible AI Labelling — bloque informativo (alcance reducido para el piloto)
 
@@ -145,7 +170,7 @@ Se separan hechos observados, valoración metodológica y calidad de la inspecci
 
 `warning` **no existe** en este vocabulario; no debe aparecer en ningún fixture, copy ni código (ver A2 en §12).
 
-Ejemplo de salida T1 (ahora como tres líneas, no una):
+Ejemplo de salida T1 (tres líneas):
 
 ```
 t1.channel:      detected (confidence: high)
@@ -222,11 +247,11 @@ Method:          iaxcore-ai-transparency@0.1.0
 
 ## 10. Fases de construcción y prueba
 
-**Ruta crítica (recortada):** Fase 0 → 1 → 2 → 3 → 4 → 7. Objetivo: piloto con usuarios reales en **4–6 semanas**, no 10–12. Fase 5 (T2) no bloquea el lanzamiento del piloto — se ejecuta en paralelo si hay capacidad o se pospone. Fase 6 (T3) es **post-piloto**; en el piloto solo se congela su contrato en Fase 0.
+**Ruta crítica (recortada):** Fase 0 → 1 → 2 → 3 → 4 → 7. Objetivo: piloto con usuarios reales en **4–6 semanas**, no 10–12. Fase 5 (T2) no bloquea el lanzamiento del piloto — se ejecuta en paralelo si hay capacidad o se pospone. Fase 6 (T3) es **post-piloto**; en el piloto solo se congela su contrato en Fase 0. **Ninguna fase se reabre por la actualización v0.5.2**; los dos sub-checks de §5.1 se incorporan dentro de Fase 3 (T1 funcional), antes de su gate de salida.
 
 ### Fase 0 · Cierre semántico y regulatorio
 **Objetivo.** Congelar qué afirma y qué no afirma el producto antes de escribir el motor.
-**Entregables.** Matriz obligación/sujeto/evidencia; estados definitivos (incluida la separación en tres sub-findings de T1); diccionario ES/EN; contratos `Detector` para T1, T2 **y T3 (solo interfaz, sin implementación)**; JSON Schema de `Evaluation`, `Finding` y `Evidence`; lista de no objetivos; definición de `deriveT1Assessment()`.
+**Entregables.** Matriz obligación/sujeto/evidencia; estados definitivos (incluida la separación en tres sub-findings de T1); diccionario ES/EN; contratos `Detector` para T1, T2 **y T3 (solo interfaz, sin implementación)**; JSON Schema de `Evaluation`, `Finding` y `Evidence` (incluye `human_intermediary_detected` y `obviousness_signals`, ver §5.1 y §15); lista de no objetivos; definición de `deriveT1Assessment()`.
 **Pruebas obligatorias.** Tests de copy que bloqueen palabras prohibidas (incluye rechazo de `warning` como estado); validación de todos los ejemplos contra el esquema; revisión de consistencia entre T1 y T2.
 **Gate de salida.** No se inicia la navegación hasta que cada resultado posible tenga texto público, alcance y limitación definidos.
 
@@ -244,8 +269,8 @@ Method:          iaxcore-ai-transparency@0.1.0
 
 ### Fase 3 · T1 funcional de extremo a extremo
 **Objetivo.** Publicar el primer producto útil: detectar interacción con IA y analizar el aviso inicial, con los tres sub-findings separados.
-**Entregables.** Base de firmas de proveedores versionada en `packages/detectors/signatures/` con tres clases (`ai_native`, `ambiguous`, `human_first` — ver B1); evidencia de IA separada del canal; apertura pasiva del panel; patrones ES/EN/FR/DE/IT/PT; capturas; selectores; `deriveT1Assessment()`; informe T1 de tres líneas.
-**Pruebas obligatorias.** Fixtures por proveedor y clase (`ai_native`/`ambiguous`/`human_first`); chat humano (F04 → `not_applicable`); chat IA; aviso explícito (F02 → `aligned` + `disclosure_timing: on_open`); aviso ambiguo; widget inaccesible; iframe cross-origin; shadow DOM; SPA; carga diferida.
+**Entregables.** Base de firmas de proveedores versionada en `packages/detectors/signatures/` con tres clases (`ai_native`, `ambiguous`, `human_first` — ver B1); evidencia de IA separada del canal; apertura pasiva del panel; patrones ES/EN/FR/DE/IT/PT; capturas; selectores; `deriveT1Assessment()`; informe T1 de tres líneas; **detección de `human_intermediary_detected` en `t1.channel`** (§5.1); **captura de `obviousness_signals` cuando `context_exceptions_note: true`** (§5.1).
+**Pruebas obligatorias.** Fixtures por proveedor y clase (`ai_native`/`ambiguous`/`human_first`); chat humano (F04 → `not_applicable`); chat IA; aviso explícito (F02 → `aligned` + `disclosure_timing: on_open`); aviso ambiguo; widget inaccesible; iframe cross-origin; shadow DOM; SPA; carga diferida; **intermediario humano explícito (F21 → `not_applicable`)**; **canal máquina-a-máquina (F22 → `not_applicable`)**.
 **Gate de salida.** Precisión de `action_recommended` ≥95% en corpus etiquetado; ningún caso sin evidencia de IA puede terminar como fallo; informe comprensible sin explicación externa.
 
 ### Fase 4 · Fix y Rescan
@@ -287,15 +312,15 @@ No se ejecuta durante el piloto. Solo existe el contrato definido en Fase 0. Si 
 
 ---
 
-## 12. Fixtures mínimos (corregidos)
+## 12. Fixtures mínimos
 
 | ID | Caso | Resultado esperado |
 |---|---|---|
 | F01 | Chat IA + aviso explícito antes de interacción | T1 `aligned` |
-| F02 | Chat IA + aviso visible al abrir el panel, antes del primer input posible | **T1 `aligned` + `disclosure_timing: on_open`** (corregido — no existe estado `warning`) |
+| F02 | Chat IA + aviso visible al abrir el panel, antes del primer input posible | T1 `aligned` + `disclosure_timing: on_open` |
 | F02b | Chat IA + aviso ausente antes del primer input posible | T1 `action_recommended` |
 | F03 | Chat IA sin aviso, panel inspeccionable | T1 `action_recommended` |
-| F04 | Chat humano explícito | **`t1.channel: detected` + `t1.ai_evidence: not_detected, evidence_of_human: true` → T1 `not_applicable`** (corregido — no es `insufficient_evidence`) |
+| F04 | Chat humano explícito | `t1.channel: detected` + `t1.ai_evidence: not_detected, evidence_of_human: true` → T1 `not_applicable` |
 | F05 | Widget de chat sin evidencia de IA ni de humano (ambiguo real) | T1 `insufficient_evidence` |
 | F06 | Sin canal conversacional | T1 `not_applicable` |
 | F07 | Launcher no abre | T1 `insufficient_evidence` |
@@ -309,6 +334,8 @@ No se ejecuta durante el piloto. Solo existe el contrato definido en Fase 0. Si 
 | F18 | Imagen que apunta a metadata cloud | Request bloqueada |
 | F19 | Página con 20.000 requests | Límite global y error controlado |
 | F20 | Contenido HTML hostil en snippet | Escapado; sin XSS |
+| **F21** *(nuevo v0.5.2)* | **Chat que deriva explícitamente a "un agente humano te contactará por email" sin respuesta automática de IA** | **`t1.channel: not_detected` (`human_intermediary_detected: true`) → T1 `not_applicable`** |
+| **F22** *(nuevo v0.5.2)* | **Endpoint exclusivamente máquina-a-máquina sin exposición a persona física (ej. webhook documentado)** | **`t1.channel: not_detected` → T1 `not_applicable`** |
 
 *F14–F16 (C2PA) se retiran del piloto junto con T3; quedan documentadas en el contrato de Fase 0 para cuando se retome T3 post-piloto.*
 
@@ -342,7 +369,7 @@ No se ejecuta durante el piloto. Solo existe el contrato definido en Fase 0. Si 
 | `/` | Landing, propuesta, URL y ejemplos de lo que se observa. |
 | `/scan/{evaluationId}` | Progreso, páginas seleccionadas y estado de detectores. |
 | `/r/{shareToken}` | Informe privado compartible y verificable. |
-| `/method` | Metodología 0.1, estados, límites, referencias y comportamiento documentado del banner de consentimiento. |
+| `/method` | Metodología 0.1, estados, límites, referencias (incluye AI Omnibus, R6–R8) y comportamiento documentado del banner de consentimiento. |
 | `/fix/ai-disclosure` | Generador autoservicio del aviso T1. |
 | `/verify` | Verificador por `evaluation_id` (piloto) o JSON canónico (v1.1); muestra clave pública. |
 | `/privacy` | Tratamiento, retención diferenciada (JSON indefinido / capturas 90 días) y borrado de evidencias. |
@@ -356,7 +383,7 @@ No se ejecuta durante el piloto. Solo existe el contrato definido en Fase 0. Si 
 |---|---|
 | `Evaluation` | `id`, `requestedUrl`, `finalUrl`, `status`, `methodVersion`, `timestamps`, `pagesRequested`, `pagesAnalyzed`, `manifest` (incluye `consent_interaction`), `reportHash`, `signatureId`. |
 | `ScanJob` | `evaluationId`, `attempts`, `maxAttempts`, `availableAt`, `lockedAt`, `lockedBy`, `heartbeatAt`, `lastError`, `finishedAt`. |
-| `Finding` | `evaluationId`, `detectorId` (incluye `t1.channel`, `t1.ai_evidence`, `t1.disclosure` como filas separadas, más el finding agregado `t1.assessment`), `observationStatus`, `assessmentStatus`, `confidenceBand`, `summaryKey`, `detail` JSON (incluye `disclosure_timing`, `evidence_of_human`, `context_exceptions_note` según aplique). |
+| `Finding` | `evaluationId`, `detectorId` (incluye `t1.channel`, `t1.ai_evidence`, `t1.disclosure` como filas separadas, más el finding agregado `t1.assessment`), `observationStatus`, `assessmentStatus`, `confidenceBand`, `summaryKey`, `detail` JSON (incluye `disclosure_timing`, `evidence_of_human`, `context_exceptions_note`, **`human_intermediary_detected`** *(nuevo v0.5.2, en `t1.channel`)*, **`obviousness_signals`** *(nuevo v0.5.2, objeto en `t1.disclosure` cuando aplica context_exceptions_note)*). |
 | `Evidence` | `findingId`, `kind`, `location`, `observedAt`, `contentHash`, `storagePath/payload` (purgable a 90 días conservando `contentHash`), `method`, `origin`. |
 | `ReportArtifact` | `evaluationId`, `format`, `canonicalHash`, `signature` (Ed25519, solo sobre el JSON), `keyId`, `createdAt`. |
 | `ShareLink` | `reportArtifactId`, `tokenHash`, `expiresAt` (≤ retención de capturas), `revokedAt`, `lastAccessedAt`. |
@@ -377,6 +404,7 @@ No se ejecuta durante el piloto. Solo existe el contrato definido en Fase 0. Si 
 | Mayoría de escaneos termina en `insufficient_evidence` | Informes correctos pero inútiles; mata H1, H3 y H5 a la vez. | Métrica dedicada (§13); ampliar base de firmas `ai_native`, no relajar semántica. |
 | Poco interés más allá del escaneo curioso | Sin negocio recurrente. | Medir Fix/Rescan/pago antes de añadir módulos o monitorización. |
 | Dependencia de una persona | No escala. | Sin revisión manual en runtime; todo caso no resoluble permanece inconcluso. |
+| **Cita normativa parcialmente superada** *(nuevo v0.5.2)* | Referencias en `/method` quedan incompletas si no reflejan el AI Omnibus (2026/1744). | R2 se complementa con R6–R8; sin registro de fuentes versionado en este piloto (deuda documentada para v1.1, §18). |
 | **El mercado se ocupa durante la construcción** (ya existen aiactscanner.com, disclosekit.com, getregula.com) | La ventana de 6–18 meses se consume en ingeniería. | La vía comercial manual (informes vendidos a despachos/agencias con auditoría a mano) corre **en paralelo desde la semana 1** y no espera al piloto; el piloto valida el producto autoservicio, no la existencia de demanda. |
 
 ---
@@ -396,7 +424,7 @@ No se ejecuta durante el piloto. Solo existe el contrato definido en Fase 0. Si 
 
 | Versión futura | Capacidad |
 |---|---|
-| v1.1 | Registro opcional, verificación DNS/archivo/meta, gestión de dominios y verificación criptográfica offline del JSON en `/verify`. |
+| v1.1 | Registro opcional, verificación DNS/archivo/meta, gestión de dominios y verificación criptográfica offline del JSON en `/verify`. **Añadido v0.5.2:** registro de fuentes normativas versionado con campo `is_current_for_amendments` por fuente; `Evaluation.methodVersion` referencia una versión concreta del ruleset en lugar de un string libre. |
 | v1.2 | Evidence Challenge automático y reevaluación parcial. |
 | v1.3 | Monitorización, histórico, alertas y badge voluntario. |
 | v1.4 | T3 (Machine-readable Provenance) retomado con su contrato ya definido en Fase 0; IAXCORE Content Check para archivos o URLs concretas. |
@@ -407,11 +435,13 @@ No se ejecuta durante el piloto. Solo existe el contrato definido en Fase 0. Si 
 
 ## 19. Instrucción maestra para Claude Code / Codex
 
-> Actúa como arquitecto principal e implementador de IAXCORE AI Transparency Scanner v0.5.1. Construye por fases y no avances si el gate anterior no está en verde: **Fase 0 → 1 → 2 → 3 → 4 → 7**, con Fase 5 (T2) en paralelo no bloqueante y Fase 6 (T3) explícitamente fuera del piloto — en Fase 0 define solo su contrato de interfaz, sin implementarlo. Antes de modificar código, inspecciona el repositorio, documenta el estado, crea un plan de cambios y define criterios de aceptación.
+> Actúa como arquitecto principal e implementador de IAXCORE AI Transparency Scanner v0.5.2. Construye por fases y no avances si el gate anterior no está en verde: **Fase 0 → 1 → 2 → 3 → 4 → 7**, con Fase 5 (T2) en paralelo no bloqueante y Fase 6 (T3) explícitamente fuera del piloto — en Fase 0 define solo su contrato de interfaz, sin implementarlo. Antes de modificar código, inspecciona el repositorio, documenta el estado, crea un plan de cambios y define criterios de aceptación.
 >
 > El producto analiza señales públicas observables; no determina cumplimiento legal. Implementa primero los contratos y estados, después la plataforma inmutable, luego el navegador seguro y solo entonces T1.
 >
-> **T1 debe producir tres sub-findings independientes** (`t1.channel`, `t1.ai_evidence`, `t1.disclosure`), cada uno con su propio `observationStatus`. El `assessmentStatus` de T1 se deriva únicamente mediante la función pura `deriveT1Assessment()`, testeada exhaustivamente. Nunca emitas `action_recommended` sin evidencia suficiente de que el canal utiliza IA. Un chat que se declara explícitamente humano (`evidence_of_human: true`) debe resolver en `not_applicable`, nunca en `insufficient_evidence`. El estado `warning` no existe en ningún vocabulario del sistema — si aparece en un fixture, en el copy o en el código, es un bug. Un aviso visible al abrir el panel y antes del primer input posible es `aligned` con `disclosure_timing: "on_open"`. No envíes mensajes a widgets, no crees conversaciones, no aceptes términos en nombre del visitante.
+> **T1 debe producir tres sub-findings independientes** (`t1.channel`, `t1.ai_evidence`, `t1.disclosure`), cada uno con su propio `observationStatus`. **`t1.channel` debe además evaluar `human_intermediary_detected`**: un canal que deriva a una persona humana para comunicar el resultado, o que es exclusivamente máquina-a-máquina sin exposición a persona física, deriva a `not_detected` → T1 `not_applicable`. El `assessmentStatus` de T1 se deriva únicamente mediante la función pura `deriveT1Assessment()`, testeada exhaustivamente. Nunca emitas `action_recommended` sin evidencia suficiente de que el canal utiliza IA. Un chat que se declara explícitamente humano (`evidence_of_human: true`) debe resolver en `not_applicable`, nunca en `insufficient_evidence`. El estado `warning` no existe en ningún vocabulario del sistema — si aparece en un fixture, en el copy o en el código, es un bug. Un aviso visible al abrir el panel y antes del primer input posible es `aligned` con `disclosure_timing: "on_open"`. No envíes mensajes a widgets, no crees conversaciones, no aceptes términos en nombre del visitante.
+>
+> Cuando `context_exceptions_note: true` en `t1.disclosure`, captura además `obviousness_signals` (nombre del asistente, tipo de avatar, si simula identidad humana, muestra del mensaje inicial) como evidencia estructurada — esto no cambia el `assessmentStatus`, solo documenta la señal para revisión humana futura.
 >
 > La base de firmas de proveedores (`packages/detectors/signatures/`) clasifica cada proveedor en `ai_native`, `ambiguous` o `human_first`, versionada; amplíala cuando la métrica de `insufficient_evidence` (§13) se dispare, sin relajar la semántica de los estados.
 >
@@ -427,35 +457,41 @@ No se ejecuta durante el piloto. Solo existe el contrato definido en Fase 0. Si 
 >
 > Todo copy visible sale de diccionarios ES/EN y un test automático debe prohibir palabras como `compliant`, `certified`, `secure`, `cumple` o `incumple`, y también el estado `warning`. El texto de `action_recommended` dirá siempre "se recomienda añadir un aviso explícito", nunca "falta un aviso obligatorio"; cuando aplique, añade `context_exceptions_note: true` al `detail`.
 >
-> Crea fixtures y pruebas antes o junto a cada detector, incluyendo los fixtures corregidos F02 (`aligned` + `disclosure_timing: on_open`), F04 (`not_applicable`) y F10 (banner de consentimiento). No avances con tests en rojo. Mantén ADRs, changelog metodológico y una lista explícita de limitaciones.
+> En `/method`, cita el marco normativo completo vigente: Reglamento (UE) 2024/1689 (art. 50) y su modificación por el Reglamento (UE) 2026/1744 (AI Omnibus, en vigor desde el 27 de julio de 2026), que introduce una transición hasta el 2 de diciembre de 2026 aplicable exclusivamente al marcado técnico del art. 50.2 — sin efecto sobre T1.
+>
+> Crea fixtures y pruebas antes o junto a cada detector, incluyendo los fixtures F02 (`aligned` + `disclosure_timing: on_open`), F04 (`not_applicable`), F10 (banner de consentimiento), **F21 (intermediario humano → `not_applicable`) y F22 (máquina-a-máquina → `not_applicable`)**. No avances con tests en rojo. Mantén ADRs, changelog metodológico y una lista explícita de limitaciones.
 >
 > En Fase 7, añade el desbloqueo del "expediente completo" con precio visible (p. ej. 149 €) y un botón de intención "Solicitar expediente" que capture el lead cualificado, sin construir pasarela de pago (cobro manual o enlace externo).
 >
-> No implementes login, pagos automatizados, rankings, score global, verificación de propietario, badge, monitorización, Evidence Challenge ni T3 durante este piloto.
+> No implementes login, pagos automatizados, rankings, score global, verificación de propietario, badge, monitorización, Evidence Challenge, T3 ni registro de fuentes versionado (v1.1) durante este piloto.
 
 ---
 
-## 20. Preguntas para revisor externo — estado tras el anexo v0.5.1
+## 20. Preguntas para revisor externo — estado tras la actualización v0.5.2
 
 | # | Pregunta | Estado |
 |---|---|---|
 | 1 | ¿La división T1 evaluable / T2 informativo / T3 experimental resuelve adecuadamente el problema de mezclar obligaciones y sujetos distintos? | **Abierta** — pendiente de validación con el piloto real. |
-| 2 | ¿Existe algún caso de T1 en el que el motor siga concluyendo demasiado, respecto a la excepción de interacción "obvia"? | **Resuelta.** Sí existe; mitigación en copy (§4), no en código: `action_recommended` nunca dice "falta un aviso obligatorio"; `context_exceptions_note: true` en el detail. |
-| 3 | ¿Los estados `observationStatus`/`assessmentStatus` son suficientes o falta `applicability`? | **Resuelta.** No falta una dimensión nueva; faltaba granularidad de findings — de ahí los tres sub-findings de T1 (§5.1). |
-| 4 | ¿Los gates y métricas permiten detener el proyecto antes de acumular complejidad? | **Reforzada** — se añadió la métrica de tasa de `insufficient_evidence` (§13) y el criterio de 0% de clics en precio tras 100 informes (§17), que no existían en v0.5. |
+| 2 | ¿Existe algún caso de T1 en el que el motor siga concluyendo demasiado, respecto a la excepción de interacción "obvia"? | **Resuelta.** Sí existe; mitigación en copy (§4), no en código: `action_recommended` nunca dice "falta un aviso obligatorio"; `context_exceptions_note: true` + `obviousness_signals` estructurados en el detail. |
+| 3 | ¿Los estados `observationStatus`/`assessmentStatus` son suficientes o falta `applicability`? | **Resuelta.** No falta una dimensión nueva; faltaba granularidad de findings y de criterios de canal — de ahí los tres sub-findings de T1 (§5.1) y el nuevo `human_intermediary_detected`. |
+| 4 | ¿Los gates y métricas permiten detener el proyecto antes de acumular complejidad? | **Reforzada** — métrica de tasa de `insufficient_evidence` (§13) y criterio de 0% de clics en precio tras 100 informes (§17). |
 | 5 | ¿Qué parte del piloto sigue dependiendo implícitamente de revisión humana o supuestos que el motor no puede conocer? | **Resuelta.** El etiquetado del corpus de validación (ground truth) es trabajo humano offline planificado (~2–4h/50 webs, §13); es la única dependencia humana reconocida, y es offline, no runtime. |
 | 6 | ¿Qué debería eliminarse todavía para que el primer producto sea pequeño, defendible y autoservicio? | **Resuelta.** T3 fuera del piloto por completo; T2 reducido a su mitad barata; `/verify` simplificado a verificación por `evaluation_id` en el piloto (§10-C). |
+| **7** *(nueva v0.5.2)* | **¿El marco normativo citado en `/method` refleja el AI Omnibus (Reglamento 2026/1744)?** | **Resuelta.** Añadidas referencias R6–R8; confirmado que la transición del Omnibus no afecta a T1 (§4). |
+| **8** *(nueva v0.5.2)* | **¿`t1.channel` distingue correctamente interacción directa con persona física de intermediación humana o flujo máquina-a-máquina?** | **Resuelta.** Nuevo campo `human_intermediary_detected` y fixtures F21/F22 (§5.1, §12). |
 
 ---
 
 ## 21. Decisiones que Claude Code no debe tomar solo (ya resueltas aquí, documentadas para trazabilidad)
 
-Estas cuatro decisiones de producto ya están tomadas en este documento — se listan explícitamente para que no se reabran ni se reinterpreten durante la implementación:
+Estas seis decisiones de producto ya están tomadas en este documento — se listan explícitamente para que no se reabran ni se reinterpreten durante la implementación:
 
 - **B1 — Taxonomía de evidencia de IA:** tres clases versionadas (`ai_native`, `ambiguous`, `human_first`) en `packages/detectors/signatures/` (§5.1, §8, §10-Fase 3). Es el detector más difícil del producto; su base de firmas requiere mantenimiento humano continuo (curación de proveedores), no solo ingeniería.
 - **B2 — Muros de consentimiento:** el escáner puede aceptar el banner de cookies de forma controlada y documentada públicamente (§10-Fase 2, §19).
 - **B3 — Métrica de tasa de informes inconclusos:** añadida a §13, con umbral de alarma y respuesta predefinida (ampliar firmas, no relajar semántica).
 - **B4 — Test de disposición a pagar:** añadido a Fase 7 (§10, §13, §17), sin construir pasarela de pago.
+- **B5** *(nueva v0.5.2)* **— Criterios de aplicabilidad de canal:** intermediario humano y máquina-a-máquina excluyen `t1.channel` de `detected` (§5.1); no se crea un `assessmentStatus` nuevo para esto.
+- **B6** *(nueva v0.5.2)* **— Registro de fuentes versionado:** explícitamente pospuesto a v1.1 (§18); no se implementa en el piloto aunque el AI Omnibus ya demostró que es necesario a medio plazo.
 
 ---
 
@@ -464,10 +500,13 @@ Estas cuatro decisiones de producto ya están tomadas en este documento — se l
 | Ref. | Fuente |
 |---|---|
 | R1 | Reglamento (UE) 2024/1689, artículo 50, EUR-Lex. |
-| R2 | Comisión Europea, "Transparency obligations under Article 50 of the AI Act", actualizado el 24 de julio de 2026. |
+| R2 | Comisión Europea, "Transparency obligations under Article 50 of the AI Act", actualizado el 24 de julio de 2026. *Nota v0.5.2: esta fecha es anterior a la entrada en vigor del AI Omnibus (27 de julio de 2026, R6) — verificar si la página ya refleja el Omnibus antes de citarla como única fuente en `/method`; complementar con R6–R8.* |
 | R3 | Node.js Releases: Node 24 figura como LTS y Node 20 como EOL a 2 de agosto de 2026. |
 | R4 | Content Authenticity Initiative, documentación oficial de `@contentauth/c2pa-node`: lectura y validación de C2PA; Node.js ≥22. |
 | R5 | Análisis de Fable aportado por el usuario: "IAXCORE — Escáner de Transparencia IA (Art. 50 AI Act) · MVP v1". |
+| **R6** *(nueva v0.5.2)* | **Reglamento (UE) 2026/1744 ("AI Omnibus"), en vigor desde el 27 de julio de 2026. EUR-Lex: `eli/reg/2026/1744/oj/eng`.** |
+| **R7** *(nueva v0.5.2)* | **Versión consolidada del Reglamento (UE) 2024/1689 a 27 de julio de 2026. EUR-Lex: `CELEX:02024R1689-20260727`.** |
+| **R8** *(nueva v0.5.2)* | **AI Act Service Desk, cronología de implementación — confirma transición limitada al art. 50.2 hasta el 2 de diciembre de 2026 para sistemas preexistentes cubiertos.** |
 
 ---
 
@@ -477,4 +516,4 @@ Estas cuatro decisiones de producto ya están tomadas en este documento — se l
 
 **Criterio de continuidad:** no se amplía IAXCORE hasta demostrar cuatro cosas: precisión alta de T1, seguridad operativa del crawler, uso real del ciclo Evidence → Fix → Rescan, y al menos una señal de disposición a pagar. El "estándar" queda como posible resultado de adopción futura, no como promesa de lanzamiento.
 
-*v0.5.1 · Documento de consenso · integra Anexo de correcciones bloqueantes · listo para handoff a Claude Code.*
+*v0.5.2 · Documento de consenso · integra actualización regulatoria (AI Omnibus) y refinamiento de T1 (human_intermediary_detected, obviousness_signals) · listo para handoff a Claude Code.*

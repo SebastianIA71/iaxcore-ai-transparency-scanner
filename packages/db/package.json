@@ -7,10 +7,22 @@
   "types": "./src/index.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:validate": "prisma validate"
   },
   "devDependencies": {
-    "vitest": "^2.1.8",
-    "typescript": "^5.7.2"
+    "@types/pg": "^8.20.3",
+    "dotenv": "^17.4.2",
+    "prisma": "^7.9.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "pg": "^8.22.0"
   }
 }
