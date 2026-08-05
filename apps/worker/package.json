@@ -12,6 +12,7 @@
   "dependencies": {
     "@iaxcore/core": "*",
     "@iaxcore/db": "*",
+    "@iaxcore/detectors": "*",
     "@iaxcore/scanner": "*"
   },
   "devDependencies": {

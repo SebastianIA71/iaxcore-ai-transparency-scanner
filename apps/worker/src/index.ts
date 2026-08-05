@@ -3,6 +3,7 @@ import { canonicalizeForSigning, signCanonicalJson } from "@iaxcore/core";
 import {
   claimNextScanJob,
   completeEvaluation,
+  createFindings,
   createReportArtifact,
   failEvaluation,
   finishScanJob,
@@ -10,6 +11,7 @@ import {
   releaseScanJobAfterFailure,
   type PrismaClient,
 } from "@iaxcore/db";
+import { t1Detector } from "@iaxcore/detectors";
 import { runScan } from "@iaxcore/scanner";
 
 export interface WorkerConfig {
@@ -45,14 +47,41 @@ export async function runWorkerOnce(db: PrismaClient, config: WorkerConfig): Pro
     // decida — se lo pasamos como límite, no lo recalculamos aquí.
     const scan = await runScan(evaluation.requestedUrl, { maxPages: evaluation.pagesRequested });
 
-    // El JSON firmado no incluye todavía manifest/páginas: T1/T2 (Fase
-    // 3/5) son lo que da contenido real a `findings`, y no existen aún —
-    // firmar de más ahora solo obligaría a re-firmar cuando lleguen.
+    // §10-Fase 3: T1 navega de forma independiente a scan.finalUrl (no
+    // reutiliza la página de runScan() — ver el comentario en
+    // t1Detector.ts sobre por qué el contrato Detector no puede llevar una
+    // Page). T2 (Fase 5) todavía no existe, así que solo T1 aporta findings.
+    const t1Result = await t1Detector.run({ evaluationId: evaluation.id, finalUrl: scan.finalUrl });
+    if (t1Result.findings.length > 0) {
+      await createFindings(
+        db,
+        t1Result.findings.map((f) => ({
+          evaluationId: f.evaluationId,
+          detectorId: f.detectorId,
+          observationStatus: f.observationStatus,
+          assessmentStatus: f.assessmentStatus,
+          confidenceBand: f.confidenceBand,
+          summaryKey: f.summaryKey,
+          // Finding.detail (packages/core) es Record<string, unknown>; el
+          // round-trip evita el mismo desajuste de tipos que scan.manifest
+          // más abajo, sin reabrir los tipos generados de Prisma aquí.
+          detail: JSON.parse(JSON.stringify(f.detail)),
+        })),
+      );
+    }
+
     const canonicalReport = {
       evaluationId: evaluation.id,
       requestedUrl: evaluation.requestedUrl,
       methodVersion: evaluation.methodVersion,
-      findings: [] as unknown[],
+      findings: t1Result.findings.map((f) => ({
+        detectorId: f.detectorId,
+        observationStatus: f.observationStatus,
+        assessmentStatus: f.assessmentStatus,
+        confidenceBand: f.confidenceBand,
+        summaryKey: f.summaryKey,
+        detail: f.detail,
+      })),
     };
     const canonicalJson = canonicalizeForSigning(canonicalReport);
     const canonicalHash = `sha256:${createHash("sha256").update(canonicalJson).digest("hex")}`;

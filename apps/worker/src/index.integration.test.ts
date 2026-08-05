@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { canonicalizeForSigning, verifyCanonicalJsonSignature } from "@iaxcore/core";
-import { createEvaluation, createPooledClient, type PrismaClient } from "@iaxcore/db";
+import { createEvaluation, createPooledClient, findFindingsByEvaluation, type PrismaClient } from "@iaxcore/db";
 import { runWorkerOnce, type WorkerConfig } from "./index.js";
 
 // §10-Fase 1, gate de salida: "una evaluación simulada pasa
@@ -23,6 +23,7 @@ describe.skipIf(!canRun)("worker — pipeline completo contra Postgres real", ()
       await db.scanJob.deleteMany({ where: { id: { in: jobIds } } });
     }
     if (evaluationIds.length > 0) {
+      await db.finding.deleteMany({ where: { evaluationId: { in: evaluationIds } } });
       await db.reportArtifact.deleteMany({ where: { evaluationId: { in: evaluationIds } } });
       await db.evaluation.deleteMany({ where: { id: { in: evaluationIds } } });
     }
@@ -59,12 +60,22 @@ describe.skipIf(!canRun)("worker — pipeline completo contra Postgres real", ()
     expect(artifact.signature).toBeTruthy();
 
     // Verificación independiente: reconstruye el mismo objeto canónico que
-    // firmó el worker y comprueba la firma con la clave pública publicada.
+    // firmó el worker (incluidos los findings de T1 que persistió — ver
+    // findings.ts sobre por qué el orden importa aquí) y comprueba la
+    // firma con la clave pública publicada.
+    const persistedFindings = await findFindingsByEvaluation(db, evaluation.id);
     const canonicalReport = {
       evaluationId: evaluation.id,
       requestedUrl: evaluation.requestedUrl,
       methodVersion: evaluation.methodVersion,
-      findings: [] as unknown[],
+      findings: persistedFindings.map((f) => ({
+        detectorId: f.detectorId,
+        observationStatus: f.observationStatus,
+        assessmentStatus: f.assessmentStatus ?? undefined,
+        confidenceBand: f.confidenceBand,
+        summaryKey: f.summaryKey,
+        detail: f.detail,
+      })),
     };
     const isValid = verifyCanonicalJsonSignature(
       process.env.SIGNING_PUBLIC_KEY_B64!,
