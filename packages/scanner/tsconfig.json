@@ -2,7 +2,12 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    // page.$$eval() callbacks in browser.ts/pageSelection.ts run inside
+    // Chromium and reference DOM types (HTMLAnchorElement, etc.) — this
+    // package is still Node-only at runtime, but needs DOM in scope to
+    // typecheck those callbacks.
+    "lib": ["ES2022", "DOM"]
   },
   "include": ["src"]
 }

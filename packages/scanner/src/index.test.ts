@@ -12,4 +12,11 @@ describe("superficie pública de @iaxcore/scanner", () => {
     expect(typeof scanner.createSecureContext).toBe("function");
     expect(typeof scanner.installSsrfGuard).toBe("function");
   });
+
+  it("exporta robots.txt, selección de páginas y EvidenceStore", () => {
+    expect(typeof scanner.parseRobotsTxt).toBe("function");
+    expect(typeof scanner.isAllowedByRobots).toBe("function");
+    expect(typeof scanner.selectPages).toBe("function");
+    expect(typeof scanner.createLocalEvidenceStore).toBe("function");
+  });
 });
