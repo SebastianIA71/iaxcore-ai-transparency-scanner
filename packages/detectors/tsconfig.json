@@ -2,7 +2,10 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": ".",
+    // page.evaluate()/frame.locator() callbacks reference DOM types — see
+    // packages/scanner/tsconfig.json for the same reasoning.
+    "lib": ["ES2022", "DOM"]
   },
-  "include": ["src"]
+  "include": ["src", "signatures"]
 }

@@ -10,8 +10,10 @@ describe("contratos T1/T2/T3 — Fase 0, solo interfaz (§10, §19)", () => {
     }
   });
 
-  it("ningún detector está implementado todavía (T1: Fase 3, T2: Fase 5, T3: fuera del piloto)", async () => {
-    await expect(t1Detector.run({ evaluationId: "eval_1", finalUrl: "https://example.com" })).rejects.toThrow();
+  // T1 se implementa en Fase 3 — ver t1Detector.test.ts para su cobertura
+  // real. T2 (Fase 5, no bloqueante) y T3 (fuera del piloto, §5.3) siguen
+  // siendo solo contrato.
+  it("T2/T3 no están implementados todavía", async () => {
     await expect(t2Detector.run({ evaluationId: "eval_1", finalUrl: "https://example.com" })).rejects.toThrow();
     await expect(t3Detector.run({ evaluationId: "eval_1", finalUrl: "https://example.com" })).rejects.toThrow();
   });

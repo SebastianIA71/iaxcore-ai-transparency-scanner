@@ -10,7 +10,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@iaxcore/core": "*"
+    "@iaxcore/core": "*",
+    "@iaxcore/scanner": "*",
+    "playwright": "^1.62.1"
   },
   "devDependencies": {
     "vitest": "^2.1.8",
