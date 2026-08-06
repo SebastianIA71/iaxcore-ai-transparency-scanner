@@ -19,6 +19,24 @@ interface Finding {
   detail: Record<string, unknown>;
 }
 
+interface ManifestPage {
+  url: string;
+  status: "completed" | "excluded";
+  exclusionReason?: string;
+  httpStatus?: number;
+}
+
+interface BlockedRequest {
+  url: string;
+  reason: string;
+}
+
+interface Manifest {
+  pages?: ManifestPage[];
+  blocked_requests?: BlockedRequest[];
+  consent_interaction?: keyof typeof T.scan.consentInteraction;
+}
+
 interface EvaluationResponse {
   id: string;
   status: EvaluationStatus;
@@ -27,6 +45,7 @@ interface EvaluationResponse {
   methodVersion: string;
   pagesRequested: number;
   pagesAnalyzed: number;
+  manifest?: Manifest;
   findings: Finding[];
 }
 
@@ -40,6 +59,11 @@ function findingLine(finding: Finding): string {
   const timing = finding.detail.disclosure_timing;
   const suffix = typeof timing === "string" ? ` — disclosure_timing: ${timing}` : ` (confianza: ${finding.confidenceBand})`;
   return `${finding.detectorId}: ${status}${suffix}`;
+}
+
+function exclusionReasonText(reason: string | undefined): string {
+  if (!reason) return T.scan.exclusionReasonFallback;
+  return (T.scan.exclusionReasons as Record<string, string>)[reason] ?? T.scan.exclusionReasonFallback;
 }
 
 export default function ScanPage() {
@@ -74,6 +98,11 @@ export default function ScanPage() {
     };
   }, [id]);
 
+  const pages = data?.manifest?.pages ?? [];
+  const excludedPages = pages.filter((p) => p.status === "excluded");
+  const blockedRequests = data?.manifest?.blocked_requests ?? [];
+  const consentInteraction = data?.manifest?.consent_interaction;
+
   return (
     <main className="mx-auto max-w-2xl p-8">
       <Link href="/" className="text-sm text-neutral-500 hover:underline">
@@ -94,33 +123,83 @@ export default function ScanPage() {
           {data.status === "failed" && <p className="mt-4 text-red-600">{T.scan.statusFailed}</p>}
 
           {data.status === "completed" && (
-            <pre className="mt-6 whitespace-pre-wrap rounded-md bg-neutral-50 p-4 font-mono text-sm text-neutral-800">
-              {data.findings.length === 0 ? (
-                T.scan.noFindings
-              ) : (
-                <>
-                  {T1_SUB_FINDINGS.map((detectorId) => {
-                    const finding = data.findings.find((f) => f.detectorId === detectorId);
-                    return finding ? <div key={detectorId}>{findingLine(finding)}</div> : null;
-                  })}
-                  {(() => {
-                    const assessment = data.findings.find((f) => f.detectorId === "t1.assessment");
-                    if (!assessment?.assessmentStatus) return null;
-                    return (
-                      <div className="mt-1 font-semibold">
-                        T1: {T.status.assessment[assessment.assessmentStatus]}
-                      </div>
-                    );
-                  })()}
-                  <div className="mt-3">
-                    {T.scan.pagesAnalyzed}: {data.pagesAnalyzed}/{data.pagesRequested}
-                  </div>
-                  <div>
-                    {T.scan.method}: {data.methodVersion}
-                  </div>
-                </>
-              )}
-            </pre>
+            <>
+              <pre className="mt-6 whitespace-pre-wrap rounded-md bg-neutral-50 p-4 font-mono text-sm text-neutral-800">
+                {data.findings.length === 0 ? (
+                  T.scan.noFindings
+                ) : (
+                  <>
+                    {T1_SUB_FINDINGS.map((detectorId) => {
+                      const finding = data.findings.find((f) => f.detectorId === detectorId);
+                      return finding ? <div key={detectorId}>{findingLine(finding)}</div> : null;
+                    })}
+                    {(() => {
+                      const assessment = data.findings.find((f) => f.detectorId === "t1.assessment");
+                      if (!assessment?.assessmentStatus) return null;
+                      return (
+                        <div className="mt-1 font-semibold">T1: {T.status.assessment[assessment.assessmentStatus]}</div>
+                      );
+                    })()}
+                    <div className="mt-3">
+                      {T.scan.pagesAnalyzed}: {data.pagesAnalyzed}/{data.pagesRequested}
+                    </div>
+                    <div>
+                      {T.scan.method}: {data.methodVersion}
+                    </div>
+                  </>
+                )}
+              </pre>
+
+              {/* Explicación en prosa del veredicto — el bloque de arriba usa
+                  el vocabulario obligatorio de §4, compacto pero poco
+                  autoexplicativo por sí solo. */}
+              {(() => {
+                const assessment = data.findings.find((f) => f.detectorId === "t1.assessment");
+                if (!assessment?.assessmentStatus) return null;
+                return (
+                  <p className="mt-3 text-sm text-neutral-600">
+                    {T.scan.assessmentExplanations[assessment.assessmentStatus]}
+                  </p>
+                );
+              })()}
+
+              {/* Cobertura: por qué el número de páginas analizadas puede
+                  ser menor que el solicitado, y qué se bloqueó por el
+                  camino — sin esto, "1/5" no se entiende. */}
+              <section className="mt-6">
+                <h2 className="text-sm font-semibold text-neutral-700">{T.scan.coverageHeading}</h2>
+                <ul className="mt-2 space-y-1 text-sm text-neutral-600">
+                  {pages.map((page) => (
+                    <li key={page.url} className="break-all">
+                      <span className={page.status === "completed" ? "text-green-700" : "text-amber-700"}>
+                        {page.status === "completed" ? T.scan.pageStatusCompleted : T.scan.pageStatusExcluded}
+                      </span>
+                      {" — "}
+                      {page.url}
+                      {page.status === "excluded" && (
+                        <span className="text-neutral-500"> ({exclusionReasonText(page.exclusionReason)})</span>
+                      )}
+                    </li>
+                  ))}
+                  {excludedPages.length === 0 && pages.length > 0 && pages.length < data.pagesRequested && (
+                    <li className="text-neutral-500">
+                      {T.scan.pagesAnalyzed}: {pages.length}/{data.pagesRequested} — no se encontraron más páginas del
+                      mismo dominio para analizar.
+                    </li>
+                  )}
+                </ul>
+
+                {blockedRequests.length > 0 && (
+                  <p className="mt-3 text-sm text-neutral-500">
+                    {blockedRequests.length} {T.scan.blockedRequestsNote}.
+                  </p>
+                )}
+
+                {consentInteraction && (
+                  <p className="mt-3 text-sm text-neutral-500">{T.scan.consentInteraction[consentInteraction]}</p>
+                )}
+              </section>
+            </>
           )}
         </div>
       )}

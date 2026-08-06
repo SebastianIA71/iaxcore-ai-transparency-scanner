@@ -63,6 +63,55 @@ export const COPY = {
       method: "Método",
       noFindings: "Todavía no hay hallazgos que mostrar.",
       backToScan: "Escanear otra URL",
+      coverageHeading: "Cobertura del escaneo",
+      pageStatusCompleted: "completada",
+      pageStatusExcluded: "excluida",
+      exclusionReasonFallback: "no se pudo analizar por un motivo no catalogado",
+      // Claves = PageExclusionReason (packages/scanner/src/scan.ts) — sin
+      // importar ese tipo aquí (core no depende de scanner), solo hace
+      // falta que las claves coincidan; una clave que falte cae en
+      // exclusionReasonFallback en vez de romper la página.
+      exclusionReasons: {
+        request_limit: "se alcanzó el límite de peticiones de red por escaneo (protección contra abuso) antes de poder cargarla",
+        redirect_limit: "la página redirigía demasiadas veces seguidas",
+        resource_size_limit: "un recurso de la página superaba el tamaño máximo permitido",
+        total_size_limit: "se alcanzó el límite de datos descargados en este escaneo",
+        navigation_timeout: "la página tardó demasiado en responder",
+        navigation_failed: "no se pudo cargar la página (fallo de red)",
+        http_error: "el servidor respondió con un error",
+        time_budget_exceeded: "se alcanzó el límite de tiempo del escaneo antes de llegar a esta página",
+        invalid_url: "la URL no es válida",
+        disallowed_protocol: "el protocolo de la URL no está permitido",
+        disallowed_port: "el puerto de la URL no está permitido",
+        loopback: "la URL apunta a una dirección local — bloqueada por seguridad",
+        private_range: "la URL apunta a una red privada — bloqueada por seguridad",
+        link_local: "la URL apunta a una dirección de enlace local — bloqueada por seguridad",
+        cloud_metadata: "la URL apunta a un servicio interno de nube — bloqueada por seguridad",
+        reserved_range: "la URL apunta a un rango de direcciones reservado — bloqueada por seguridad",
+        multicast_or_broadcast: "la URL apunta a una dirección de difusión — bloqueada por seguridad",
+        unspecified: "la URL no especifica un destino válido",
+        unresolved_hostname: "no se pudo resolver el nombre de dominio",
+      },
+      blockedRequestsNote: "recursos de la página bloqueados por los límites de seguridad del escaneo (no impide leer el contenido, solo protege contra abuso)",
+      // Claves = AssessmentStatus (packages/core/src/vocabulary.ts).
+      assessmentExplanations: {
+        aligned:
+          "Se detectó un canal de interacción con IA y un aviso visible antes del primer mensaje posible.",
+        action_recommended:
+          "Se detectó un canal de interacción con IA sin un aviso claro visible al abrirlo — por eso se recomienda añadir uno.",
+        not_applicable:
+          "No se detectó ningún canal de interacción con IA dentro del alcance analizado (o el canal encontrado no corresponde a IA — por ejemplo, atención humana o un intermediario).",
+        insufficient_evidence:
+          "No hay evidencia suficiente para concluir si hay interacción con IA — el canal encontrado es ambiguo, no se pudo inspeccionar, o el escáner fue bloqueado.",
+        experimental: "Resultado experimental, no evaluable en este piloto.",
+      },
+      // Claves = EvaluationManifest.consent_interaction.
+      consentInteraction: {
+        accepted_banner: "El escáner aceptó un banner de cookies para poder continuar la inspección.",
+        not_detected: "No se detectó ningún banner de cookies, o no se identificó con confianza suficiente.",
+        declined: "Se detectó un banner de cookies y no se interactuó con él.",
+        not_attempted: "No se llegó a comprobar si había banner de cookies.",
+      },
     },
   },
   en: {
@@ -112,6 +161,48 @@ export const COPY = {
       method: "Method",
       noFindings: "No findings to show yet.",
       backToScan: "Scan another URL",
+      coverageHeading: "Scan coverage",
+      pageStatusCompleted: "completed",
+      pageStatusExcluded: "excluded",
+      exclusionReasonFallback: "could not be analyzed for an uncatalogued reason",
+      exclusionReasons: {
+        request_limit: "the per-scan network request limit (abuse protection) was reached before it could load",
+        redirect_limit: "the page redirected too many times in a row",
+        resource_size_limit: "a resource on the page exceeded the maximum allowed size",
+        total_size_limit: "the total data limit for this scan was reached",
+        navigation_timeout: "the page took too long to respond",
+        navigation_failed: "the page could not be loaded (network failure)",
+        http_error: "the server responded with an error",
+        time_budget_exceeded: "the scan's time budget was reached before getting to this page",
+        invalid_url: "the URL is not valid",
+        disallowed_protocol: "the URL's protocol is not allowed",
+        disallowed_port: "the URL's port is not allowed",
+        loopback: "the URL points to a local address — blocked for safety",
+        private_range: "the URL points to a private network — blocked for safety",
+        link_local: "the URL points to a link-local address — blocked for safety",
+        cloud_metadata: "the URL points to an internal cloud service — blocked for safety",
+        reserved_range: "the URL points to a reserved address range — blocked for safety",
+        multicast_or_broadcast: "the URL points to a broadcast address — blocked for safety",
+        unspecified: "the URL does not specify a valid destination",
+        unresolved_hostname: "the domain name could not be resolved",
+      },
+      blockedRequestsNote: "page resources blocked by the scan's safety limits (this doesn't prevent reading the content, it only guards against abuse)",
+      assessmentExplanations: {
+        aligned: "An AI interaction channel was detected along with a notice visible before the first possible message.",
+        action_recommended:
+          "An AI interaction channel was detected without a clear notice visible when it opens — that's why adding one is recommended.",
+        not_applicable:
+          "No AI interaction channel was detected within the analyzed scope (or the channel found isn't AI — e.g. human support or an intermediary).",
+        insufficient_evidence:
+          "There isn't enough evidence to conclude whether there's AI interaction — the channel found is ambiguous, couldn't be inspected, or the scanner was blocked.",
+        experimental: "Experimental result, not evaluable in this pilot.",
+      },
+      consentInteraction: {
+        accepted_banner: "The scanner accepted a cookie banner in order to continue inspecting the page.",
+        not_detected: "No cookie banner was detected, or it couldn't be identified with enough confidence.",
+        declined: "A cookie banner was detected and left untouched.",
+        not_attempted: "Whether there was a cookie banner was never checked.",
+      },
     },
   },
 } as const;
