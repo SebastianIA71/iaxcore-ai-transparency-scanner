@@ -4,7 +4,7 @@
 import { COPY } from "@iaxcore/core/copy";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 const T = COPY.es;
 
@@ -69,6 +69,91 @@ function findingLine(finding: Finding): string {
 function exclusionReasonText(reason: string | undefined): string {
   if (!reason) return T.scan.exclusionReasonFallback;
   return (T.scan.exclusionReasons as Record<string, string>)[reason] ?? T.scan.exclusionReasonFallback;
+}
+
+// §7/§10-Fase 7: botón de intención "Solicitar expediente" — captura un
+// lead cualificado, no cobra nada aquí mismo (§10-Fase 7: "cobro manual o
+// enlace de pago externo — no se construye pasarela de pago").
+function DossierUnlock({ evaluationId }: { evaluationId: string }) {
+  const [email, setEmail] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    if (!consent) {
+      setError(T.dossier.errorConsentRequired);
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, evaluationId, contactConsent: consent }),
+      });
+      if (response.status === 201) {
+        setSuccess(true);
+        return;
+      }
+      const json = (await response.json().catch(() => ({}))) as { error?: string };
+      if (json.error === "invalid_email") setError(T.dossier.errorInvalidEmail);
+      else if (json.error === "consent_required") setError(T.dossier.errorConsentRequired);
+      else setError(T.dossier.errorGeneric);
+    } catch {
+      setError(T.dossier.errorGeneric);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <section className="mt-8 rounded-md border border-neutral-200 p-4">
+      <h2 className="text-sm font-semibold text-neutral-700">{T.dossier.heading}</h2>
+      {success ? (
+        <p className="mt-2 text-sm text-green-700">{T.dossier.success}</p>
+      ) : (
+        <>
+          <p className="mt-1 text-lg font-semibold text-neutral-900">{T.dossier.price}</p>
+          <p className="mt-2 text-sm text-neutral-600">{T.dossier.description}</p>
+          <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-2">
+            <label className="text-sm font-medium" htmlFor="dossier-email">
+              {T.dossier.emailLabel}
+            </label>
+            <input
+              id="dossier-email"
+              name="email"
+              type="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder={T.dossier.emailPlaceholder}
+              className="rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900"
+            />
+            <label className="mt-1 flex items-center gap-2 text-sm text-neutral-600">
+              <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+              {T.dossier.consentLabel}
+            </label>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="mt-2 self-start rounded-md bg-neutral-900 px-4 py-2 text-sm text-white disabled:opacity-50"
+            >
+              {submitting ? T.dossier.submitting : T.dossier.submit}
+            </button>
+            {error && (
+              <p className="text-sm text-red-600" role="alert">
+                {error}
+              </p>
+            )}
+          </form>
+        </>
+      )}
+    </section>
+  );
 }
 
 export default function ScanPage() {
@@ -237,6 +322,8 @@ export default function ScanPage() {
                   </section>
                 );
               })()}
+
+              <DossierUnlock evaluationId={data.id} />
             </>
           )}
         </div>

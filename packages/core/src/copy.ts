@@ -127,6 +127,25 @@ export const COPY = {
         "caption-text": "texto junto a una imagen",
       },
     },
+    // §7/§10-Fase 7: "desbloqueo del 'expediente completo' con precio
+    // visible... botón de intención 'Solicitar expediente' que captura el
+    // lead cualificado (cobro manual o enlace de pago externo — no se
+    // construye pasarela de pago)." Precio de ejemplo de la propia spec.
+    dossier: {
+      heading: "Expediente completo",
+      price: "149 €",
+      description:
+        "Análisis detallado de todas las páginas del dominio, evidencia ampliada y acompañamiento para resolver los hallazgos. Sin compromiso de compra automática: al solicitarlo, te contactamos para los siguientes pasos.",
+      emailLabel: "Email de contacto",
+      emailPlaceholder: "tu@empresa.com",
+      consentLabel: "Acepto que IAXCORE me contacte sobre este expediente.",
+      submit: "Solicitar expediente completo",
+      submitting: "Enviando…",
+      success: "Gracias — te contactaremos en breve para los siguientes pasos.",
+      errorInvalidEmail: "Introduce un email válido.",
+      errorConsentRequired: "Marca la casilla de consentimiento para continuar.",
+      errorGeneric: "No se pudo enviar la solicitud. Inténtalo de nuevo.",
+    },
   },
   en: {
     t1: {
@@ -228,6 +247,21 @@ export const COPY = {
         "aria-label": "accessibility label",
         "caption-text": "text next to an image",
       },
+    },
+    dossier: {
+      heading: "Full dossier",
+      price: "€149",
+      description:
+        "Detailed analysis of every page on the domain, expanded evidence, and hands-on help resolving the findings. No automatic purchase commitment: requesting it just gets you contacted about next steps.",
+      emailLabel: "Contact email",
+      emailPlaceholder: "you@company.com",
+      consentLabel: "I agree to be contacted by IAXCORE about this dossier.",
+      submit: "Request full dossier",
+      submitting: "Submitting…",
+      success: "Thanks — we'll be in touch shortly about next steps.",
+      errorInvalidEmail: "Enter a valid email.",
+      errorConsentRequired: "Check the consent box to continue.",
+      errorGeneric: "Could not submit the request. Please try again.",
     },
   },
 } as const;
