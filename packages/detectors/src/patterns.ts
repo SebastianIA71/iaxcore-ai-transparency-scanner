@@ -117,3 +117,31 @@ export const AI_SUGGESTIVE_NAME_PATTERNS: readonly RegExp[] = [
   /asistente/i,
   /robot/i,
 ] as const;
+
+// t2.visible_labelling (§5.2): etiquetas de contenido generado/manipulado
+// por IA — frases cortas, del tipo que aparece en un figcaption/alt/aria-
+// label, no menciones sueltas de "IA" en un párrafo cualquiera. Deliberado:
+// labelDetection.ts solo prueba estos patrones contra candidatos ya
+// filtrados por posición en el DOM (figcaption, alt, aria-label, texto
+// corto junto a un <figure>) — nunca contra el cuerpo de texto genérico de
+// la página. Esa combinación (patrón + posición) es lo que evita el falso
+// positivo de F12 ("texto editorial que habla de IA"), no el patrón solo.
+export const AI_LABEL_PATTERNS: readonly RegExp[] = [
+  /ai[ -]generated/i,
+  /generated (by|with) ai/i,
+  /made with ai/i,
+  /created with ai/i,
+  /synthetic media/i,
+  /generad[oa]s? (con|por) ia/i,
+  /contenido sintético/i,
+  /cread[oa] con ia/i,
+  /généré[e]? (par|avec) l'?ia/i,
+  /média synthétique/i,
+  /ki-generiert/i,
+  /von ki generiert/i,
+  /synthetische medien/i,
+  /generat[oa] (con|dall'?)ia/i,
+  /media sintetico/i,
+  /gerad[oa] (por|com) ia/i,
+  /mídia sintética/i,
+] as const;

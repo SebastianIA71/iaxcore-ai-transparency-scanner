@@ -37,6 +37,11 @@ interface Manifest {
   consent_interaction?: keyof typeof T.scan.consentInteraction;
 }
 
+interface T2Signal {
+  location: keyof typeof T.scan.t2SignalLocations;
+  matchedText: string;
+}
+
 interface EvaluationResponse {
   id: string;
   status: EvaluationStatus;
@@ -199,6 +204,39 @@ export default function ScanPage() {
                   <p className="mt-3 text-sm text-neutral-500">{T.scan.consentInteraction[consentInteraction]}</p>
                 )}
               </section>
+
+              {/* T2 (§5.2) — informativo, nunca un veredicto: solo cuenta y
+                  localiza etiquetas visibles de contenido con IA, si las hay. */}
+              {(() => {
+                const t2 = data.findings.find((f) => f.detectorId === "t2.visible_labelling");
+                if (!t2) return null;
+                const signals = (t2.detail.signals as T2Signal[] | undefined) ?? [];
+                return (
+                  <section className="mt-6">
+                    <h2 className="text-sm font-semibold text-neutral-700">{T.scan.t2Heading}</h2>
+                    {t2.observationStatus === "error" && (
+                      <p className="mt-2 text-sm text-neutral-500">{T.scan.t2Error}</p>
+                    )}
+                    {t2.observationStatus === "not_detected" && (
+                      <p className="mt-2 text-sm text-neutral-500">{T.scan.t2NotDetected}</p>
+                    )}
+                    {signals.length > 0 && (
+                      <>
+                        <p className="mt-2 text-sm text-neutral-600">
+                          {signals.length} {T.scan.t2Detected}:
+                        </p>
+                        <ul className="mt-1 space-y-1 text-sm text-neutral-600">
+                          {signals.map((signal, i) => (
+                            <li key={i}>
+                              {T.scan.t2SignalLocations[signal.location] ?? signal.location}: "{signal.matchedText}"
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </section>
+                );
+              })()}
             </>
           )}
         </div>

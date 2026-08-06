@@ -3,7 +3,6 @@ import {
   type Detector,
   type DetectorContext,
   type DetectorResult,
-  type EvidenceConfidenceBand,
   type Finding,
   type T1AiEvidenceFinding,
   type T1ChannelFinding,
@@ -19,28 +18,9 @@ import {
 } from "@iaxcore/scanner";
 import { detectAndOpenChannel } from "./channel.js";
 import { buildObviousnessSignals, classifyAiEvidence, classifyDisclosure } from "./classification.js";
+import { buildFinding as finding } from "./finding.js";
 
 const NAVIGATION_TIMEOUT_MS = 15_000;
-
-function finding(
-  evaluationId: string,
-  detectorId: Finding["detectorId"],
-  observationStatus: Finding["observationStatus"],
-  confidenceBand: EvidenceConfidenceBand,
-  summaryKey: string,
-  detail: Record<string, unknown>,
-  assessmentStatus?: Finding["assessmentStatus"],
-): Finding {
-  return {
-    evaluationId,
-    detectorId,
-    observationStatus,
-    confidenceBand,
-    summaryKey,
-    detail,
-    ...(assessmentStatus ? { assessmentStatus } : {}),
-  };
-}
 
 // t1.assessment no tiene un observationStatus propio en la spec (§5.1 solo
 // define su assessmentStatus, vía la tabla de derivación) — se hereda el de

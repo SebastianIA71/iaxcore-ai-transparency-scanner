@@ -11,7 +11,7 @@ import {
   releaseScanJobAfterFailure,
   type PrismaClient,
 } from "@iaxcore/db";
-import { t1Detector } from "@iaxcore/detectors";
+import { t1Detector, t2Detector } from "@iaxcore/detectors";
 import { runScan } from "@iaxcore/scanner";
 
 export interface WorkerConfig {
@@ -48,15 +48,21 @@ export async function runWorkerOnce(db: PrismaClient, config: WorkerConfig): Pro
     // decida — se lo pasamos como límite, no lo recalculamos aquí.
     const scan = await runScan(evaluation.requestedUrl, { maxPages: evaluation.pagesRequested });
 
-    // §10-Fase 3: T1 navega de forma independiente a scan.finalUrl (no
-    // reutiliza la página de runScan() — ver el comentario en
-    // t1Detector.ts sobre por qué el contrato Detector no puede llevar una
-    // Page). T2 (Fase 5) todavía no existe, así que solo T1 aporta findings.
-    const t1Result = await t1Detector.run({ evaluationId: evaluation.id, finalUrl: scan.finalUrl });
-    if (t1Result.findings.length > 0) {
+    // §10-Fase 3/5: T1 y T2 navegan cada uno de forma independiente a
+    // scan.finalUrl (no reutilizan la página de runScan() — ver el
+    // comentario en t1Detector.ts sobre por qué el contrato Detector no
+    // puede llevar una Page). T2 es informativo/no bloqueante (§5.2) — sus
+    // findings nunca llevan assessmentStatus, así que no afectan el
+    // veredicto de T1, solo se añaden al mismo informe.
+    const [t1Result, t2Result] = await Promise.all([
+      t1Detector.run({ evaluationId: evaluation.id, finalUrl: scan.finalUrl }),
+      t2Detector.run({ evaluationId: evaluation.id, finalUrl: scan.finalUrl }),
+    ]);
+    const allFindings = [...t1Result.findings, ...t2Result.findings];
+    if (allFindings.length > 0) {
       await createFindings(
         db,
-        t1Result.findings.map((f) => ({
+        allFindings.map((f) => ({
           evaluationId: f.evaluationId,
           detectorId: f.detectorId,
           observationStatus: f.observationStatus,
@@ -75,7 +81,7 @@ export async function runWorkerOnce(db: PrismaClient, config: WorkerConfig): Pro
       evaluationId: evaluation.id,
       requestedUrl: evaluation.requestedUrl,
       methodVersion: evaluation.methodVersion,
-      findings: t1Result.findings.map((f) => ({
+      findings: allFindings.map((f) => ({
         detectorId: f.detectorId,
         observationStatus: f.observationStatus,
         assessmentStatus: f.assessmentStatus,

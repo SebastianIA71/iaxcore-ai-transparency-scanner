@@ -112,6 +112,20 @@ export const COPY = {
         declined: "Se detectó un banner de cookies y no se interactuó con él.",
         not_attempted: "No se llegó a comprobar si había banner de cookies.",
       },
+      // §5.2/§10-Fase 5: T2 es informativo, no evaluable — su copy nunca
+      // debe sonar a acusación cuando no encuentra nada (regla dura: nunca
+      // action_recommended solo por no detectar una etiqueta).
+      t2Heading: "Etiquetado visible de contenido con IA",
+      t2Detected: "señal(es) de etiquetado encontradas",
+      t2NotDetected:
+        "No se encontraron etiquetas visibles de contenido generado o manipulado por IA en esta página. Esto no significa que el contenido no esté generado por IA — solo que no se encontró una etiqueta visible en el alcance analizado.",
+      t2Error: "No se pudo inspeccionar esta página en busca de etiquetas.",
+      t2SignalLocations: {
+        figcaption: "leyenda de imagen o vídeo",
+        alt: "texto alternativo de una imagen",
+        "aria-label": "etiqueta de accesibilidad",
+        "caption-text": "texto junto a una imagen",
+      },
     },
   },
   en: {
@@ -202,6 +216,17 @@ export const COPY = {
         not_detected: "No cookie banner was detected, or it couldn't be identified with enough confidence.",
         declined: "A cookie banner was detected and left untouched.",
         not_attempted: "Whether there was a cookie banner was never checked.",
+      },
+      t2Heading: "Visible AI content labelling",
+      t2Detected: "signal(s) found",
+      t2NotDetected:
+        "No visible labels for AI-generated or AI-manipulated content were found on this page. This doesn't mean the content isn't AI-generated — only that no visible label was found within the analyzed scope.",
+      t2Error: "This page could not be inspected for labels.",
+      t2SignalLocations: {
+        figcaption: "image or video caption",
+        alt: "an image's alt text",
+        "aria-label": "accessibility label",
+        "caption-text": "text next to an image",
       },
     },
   },

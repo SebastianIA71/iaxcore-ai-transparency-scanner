@@ -1,21 +1,13 @@
 import type { Detector } from "@iaxcore/core";
 
 export { runT1Detection, t1Detector, type T1DetectionOptions } from "./t1Detector.js";
+export { runT2Detection, t2Detector, type T2DetectionOptions } from "./t2Detector.js";
 
-// T2 se construye en Fase 5 (no bloqueante para el piloto), T3 no se
-// construye en este piloto (§5.3) — el contrato evita cerrar la puerta a
-// retomarlo post-piloto sin tener que rediseñar la forma del dato.
+// T3 no se construye en este piloto (§5.3) — el contrato evita cerrar la
+// puerta a retomarlo post-piloto sin tener que rediseñar la forma del dato.
 function notImplemented(id: string): never {
   throw new Error(`${id}: detector not implemented yet — see spec §10 for its build phase`);
 }
-
-export const t2Detector: Detector<"t2"> = {
-  id: "t2",
-  version: "0.1.0",
-  async run() {
-    notImplemented("t2");
-  },
-};
 
 export const t3Detector: Detector<"t3"> = {
   id: "t3",

@@ -21,6 +21,7 @@ const releaseScanJobAfterFailure = vi.fn().mockResolvedValue(undefined);
 const failEvaluation = vi.fn().mockResolvedValue(undefined);
 const runScan = vi.fn();
 const t1DetectorRun = vi.fn().mockResolvedValue({ findings: [] });
+const t2DetectorRun = vi.fn().mockResolvedValue({ findings: [] });
 
 vi.mock("@iaxcore/db", () => ({
   claimNextScanJob: (...args: unknown[]) => claimNextScanJob(...args),
@@ -39,6 +40,7 @@ vi.mock("@iaxcore/scanner", () => ({
 
 vi.mock("@iaxcore/detectors", () => ({
   t1Detector: { id: "t1", version: "test", run: (...args: unknown[]) => t1DetectorRun(...args) },
+  t2Detector: { id: "t2", version: "test", run: (...args: unknown[]) => t2DetectorRun(...args) },
 }));
 
 const { runWorkerOnce } = await import("./index.js");
@@ -94,6 +96,17 @@ const T1_FINDINGS = [
   },
 ];
 
+const T2_FINDINGS = [
+  {
+    evaluationId: "eval-1",
+    detectorId: "t2.visible_labelling",
+    observationStatus: "not_detected",
+    confidenceBand: "medium",
+    summaryKey: "t2.visible_labelling.not_detected",
+    detail: { count: 0, signals: [] },
+  },
+];
+
 function fakeDb() {
   return {
     evaluation: { findUniqueOrThrow: vi.fn(async () => EVALUATION) },
@@ -105,10 +118,11 @@ describe("runWorkerOnce — orquestación (§10-Fase 2: cablea runScan al pipeli
     vi.clearAllMocks();
   });
 
-  it("navega con runScan(), corre t1Detector sobre el finalUrl, y persiste ambos resultados", async () => {
+  it("navega con runScan(), corre T1 y T2 sobre el finalUrl, y persiste los findings de ambos", async () => {
     claimNextScanJob.mockResolvedValueOnce({ id: "job-1", evaluationId: "eval-1", attempts: 1 });
     runScan.mockResolvedValueOnce(SCAN_RESULT);
     t1DetectorRun.mockResolvedValueOnce({ findings: T1_FINDINGS });
+    t2DetectorRun.mockResolvedValueOnce({ findings: T2_FINDINGS });
     const db = fakeDb();
 
     const result = await runWorkerOnce(db, CONFIG);
@@ -116,7 +130,8 @@ describe("runWorkerOnce — orquestación (§10-Fase 2: cablea runScan al pipeli
     expect(result).toEqual({ claimed: true, evaluationId: "eval-1" });
     expect(runScan).toHaveBeenCalledWith(EVALUATION.requestedUrl, { maxPages: EVALUATION.pagesRequested });
     expect(t1DetectorRun).toHaveBeenCalledWith({ evaluationId: "eval-1", finalUrl: SCAN_RESULT.finalUrl });
-    expect(createFindings).toHaveBeenCalledWith(db, T1_FINDINGS);
+    expect(t2DetectorRun).toHaveBeenCalledWith({ evaluationId: "eval-1", finalUrl: SCAN_RESULT.finalUrl });
+    expect(createFindings).toHaveBeenCalledWith(db, [...T1_FINDINGS, ...T2_FINDINGS]);
 
     expect(completeEvaluation).toHaveBeenCalledWith(
       db,
@@ -131,10 +146,11 @@ describe("runWorkerOnce — orquestación (§10-Fase 2: cablea runScan al pipeli
     expect(failEvaluation).not.toHaveBeenCalled();
   });
 
-  it("sin findings de T1 (p. ej. error de navegación), no llama a createFindings", async () => {
+  it("sin findings de T1 ni T2 (p. ej. error de navegación en ambos), no llama a createFindings", async () => {
     claimNextScanJob.mockResolvedValueOnce({ id: "job-1", evaluationId: "eval-1", attempts: 1 });
     runScan.mockResolvedValueOnce(SCAN_RESULT);
     t1DetectorRun.mockResolvedValueOnce({ findings: [] });
+    t2DetectorRun.mockResolvedValueOnce({ findings: [] });
     const db = fakeDb();
 
     await runWorkerOnce(db, CONFIG);
@@ -142,7 +158,7 @@ describe("runWorkerOnce — orquestación (§10-Fase 2: cablea runScan al pipeli
     expect(createFindings).not.toHaveBeenCalled();
   });
 
-  it("sin job disponible, no llama a runScan, t1Detector ni a ninguna transición", async () => {
+  it("sin job disponible, no llama a runScan, T1/T2 ni a ninguna transición", async () => {
     claimNextScanJob.mockResolvedValueOnce(null);
     const db = fakeDb();
 
@@ -151,10 +167,11 @@ describe("runWorkerOnce — orquestación (§10-Fase 2: cablea runScan al pipeli
     expect(result).toEqual({ claimed: false });
     expect(runScan).not.toHaveBeenCalled();
     expect(t1DetectorRun).not.toHaveBeenCalled();
+    expect(t2DetectorRun).not.toHaveBeenCalled();
     expect(markEvaluationRunning).not.toHaveBeenCalled();
   });
 
-  it("si runScan() falla, libera el job y marca la evaluación como fallida sin correr T1 ni completar nada", async () => {
+  it("si runScan() falla, libera el job y marca la evaluación como fallida sin correr T1/T2 ni completar nada", async () => {
     claimNextScanJob.mockResolvedValueOnce({ id: "job-2", evaluationId: "eval-1", attempts: 1 });
     runScan.mockRejectedValueOnce(new Error("chromium se cayó"));
     const db = fakeDb();
@@ -162,6 +179,7 @@ describe("runWorkerOnce — orquestación (§10-Fase 2: cablea runScan al pipeli
     await expect(runWorkerOnce(db, CONFIG)).rejects.toThrow("chromium se cayó");
 
     expect(t1DetectorRun).not.toHaveBeenCalled();
+    expect(t2DetectorRun).not.toHaveBeenCalled();
     expect(completeEvaluation).not.toHaveBeenCalled();
     expect(releaseScanJobAfterFailure).toHaveBeenCalledWith(db, "job-2", "chromium se cayó");
     expect(failEvaluation).toHaveBeenCalledWith(db, "eval-1");
