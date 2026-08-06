@@ -1,5 +1,5 @@
 import { createDirectClient } from "@iaxcore/db";
-import { runWorkerOnce, type WorkerConfig } from "./index.js";
+import { runWorkerOnce, type WorkerConfig } from "@iaxcore/pipeline";
 
 function requireEnv(name: string): string {
   const value = process.env[name];

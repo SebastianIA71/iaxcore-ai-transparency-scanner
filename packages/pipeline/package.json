@@ -1,5 +1,5 @@
 {
-  "name": "@iaxcore/scanner",
+  "name": "@iaxcore/pipeline",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@iaxcore/core": "*",
-    "@sparticuz/chromium": "^149.0.0",
-    "playwright": "^1.62.1",
-    "playwright-core": "^1.62.1"
+    "@iaxcore/db": "*",
+    "@iaxcore/detectors": "*",
+    "@iaxcore/scanner": "*"
   },
   "devDependencies": {
     "typescript": "^5.7.2",

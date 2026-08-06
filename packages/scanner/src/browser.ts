@@ -1,6 +1,22 @@
 import { promises as dns } from "node:dns";
+import chromiumServerless from "@sparticuz/chromium";
 import { chromium, type Browser, type BrowserContext, type Request } from "playwright";
+import { chromium as chromiumCore } from "playwright-core";
 import { checkUrl, classifyAddress, type SsrfBlockReason } from "./ssrf.js";
+
+// Vercel (y AWS Lambda, que Vercel Functions usa por debajo) fija estas
+// variables en el propio entorno de ejecución — no hace falta configurarlas
+// a mano. `playwright`'s Chromium empaquetado (~300 MB) no cabe en el
+// límite de tamaño de una función serverless; `@sparticuz/chromium` (~40MB)
+// + `playwright-core` (~5MB, misma API, sin navegador embebido) sí.
+// Exportada solo para poder probar la decisión sin ejecutar de verdad el
+// binario de @sparticuz/chromium — ese binario está compilado para Amazon
+// Linux (el runtime real de Vercel Functions/AWS Lambda) y no corre en un
+// entorno de desarrollo Windows/macOS; su camino solo puede verificarse
+// desplegado de verdad.
+export function isServerlessRuntime(): boolean {
+  return Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+}
 
 // §9: aislamiento por evaluación — contexto nuevo, sin credenciales, sin
 // storageState, sin acceso a red interna del host. `args` solo existe para
@@ -8,6 +24,16 @@ import { checkUrl, classifyAddress, type SsrfBlockReason } from "./ssrf.js";
 // mentira a un servidor local sin necesidad de tocar /etc/hosts — nunca se
 // usa así en producción.
 export async function launchSecureBrowser(args: string[] = []): Promise<Browser> {
+  if (isServerlessRuntime()) {
+    // playwright-core's Browser type is the same declaration "playwright"
+    // re-exports, so no cast needed for the rest of this module (and its
+    // callers) to treat it identically.
+    return chromiumCore.launch({
+      args: [...chromiumServerless.args, ...args],
+      executablePath: await chromiumServerless.executablePath(),
+      headless: true,
+    });
+  }
   return chromium.launch({ headless: true, args });
 }
 

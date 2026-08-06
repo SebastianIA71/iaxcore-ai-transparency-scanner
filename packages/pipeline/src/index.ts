@@ -25,11 +25,12 @@ export interface WorkerRunResult {
   evaluationId?: string;
 }
 
-// §10-Fase 1: "demostrar que se pueden crear, ejecutar, guardar y verificar
-// evaluaciones sin detectores funcionales" — T1/T2 no existen todavía (Fase
-// 3/5), así que el worker completa con findings vacíos. Lo que prueba este
-// pipeline es claim → running → firmar → completed → job finished, no la
-// detección en sí.
+// Extraída de apps/worker a un paquete compartido porque dos consumidores
+// distintos necesitan exactamente esta misma secuencia claim → scan → T1 →
+// firmar → completar: el poll loop persistente de apps/worker (src/main.ts)
+// y, ahora, apps/web disparándola en línea dentro de POST /api/scans (Vercel
+// Hobby no soporta cron con la frecuencia que haría falta para un worker por
+// cola — ver el `after()` en apps/web/app/api/scans/route.ts).
 export async function runWorkerOnce(db: PrismaClient, config: WorkerConfig): Promise<WorkerRunResult> {
   const job = await claimNextScanJob(db, config.workerId);
   if (!job) {

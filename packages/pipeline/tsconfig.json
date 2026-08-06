@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    // @iaxcore/scanner's package.json points "main"/"types" straight at its
+    // src/index.ts (no build step in between), so tsc type-checks that
+    // source as part of *this* program, under *this* tsconfig's lib — not
+    // scanner's own. Its page.$$eval() callbacks need DOM types even though
+    // nothing in this package itself touches the DOM.
+    "lib": ["ES2022", "DOM"]
+  },
+  "include": ["src"]
+}

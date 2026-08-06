@@ -3,20 +3,15 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "main": "./src/index.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node --experimental-strip-types src/main.ts",
-    "test": "vitest run"
+    "start": "node --experimental-strip-types src/main.ts"
   },
   "dependencies": {
-    "@iaxcore/core": "*",
     "@iaxcore/db": "*",
-    "@iaxcore/detectors": "*",
-    "@iaxcore/scanner": "*"
+    "@iaxcore/pipeline": "*"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "typescript": "^5.7.2"
   }
 }
