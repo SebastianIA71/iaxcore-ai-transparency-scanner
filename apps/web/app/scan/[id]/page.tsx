@@ -240,6 +240,10 @@ export default function ScanPage() {
                 )}
               </pre>
 
+              <Link href={`/verify?id=${data.id}`} className="mt-2 inline-block text-sm text-neutral-500 hover:underline">
+                {T.verify.heading} →
+              </Link>
+
               {/* Explicación en prosa del veredicto — el bloque de arriba usa
                   el vocabulario obligatorio de §4, compacto pero poco
                   autoexplicativo por sí solo. */}

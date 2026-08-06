@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { canonicalizeForSigning, signCanonicalJson } from "@iaxcore/core";
+import { buildCanonicalReport, canonicalizeForSigning, signCanonicalJson } from "@iaxcore/core";
 import {
   claimNextScanJob,
   completeEvaluation,
@@ -77,19 +77,12 @@ export async function runWorkerOnce(db: PrismaClient, config: WorkerConfig): Pro
       );
     }
 
-    const canonicalReport = {
+    const canonicalReport = buildCanonicalReport({
       evaluationId: evaluation.id,
       requestedUrl: evaluation.requestedUrl,
       methodVersion: evaluation.methodVersion,
-      findings: allFindings.map((f) => ({
-        detectorId: f.detectorId,
-        observationStatus: f.observationStatus,
-        assessmentStatus: f.assessmentStatus,
-        confidenceBand: f.confidenceBand,
-        summaryKey: f.summaryKey,
-        detail: f.detail,
-      })),
-    };
+      findings: allFindings,
+    });
     const canonicalJson = canonicalizeForSigning(canonicalReport);
     const canonicalHash = `sha256:${createHash("sha256").update(canonicalJson).digest("hex")}`;
     const signature = signCanonicalJson(config.signingPrivateKeyBase64, canonicalReport);

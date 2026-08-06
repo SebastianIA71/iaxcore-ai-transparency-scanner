@@ -8,3 +8,4 @@ export * from "./signing.js";
 export * from "./privacy.js";
 export * from "./fix.js";
 export * from "./rescan.js";
+export * from "./report.js";
