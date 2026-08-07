@@ -19,6 +19,13 @@ export default function AiDisclosureFixPage() {
     await navigator.clipboard.writeText(fix.htmlSnippet).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    // Best-effort — un fallo de telemetría nunca debe afectar la copia,
+    // que ya ha ocurrido en la línea de arriba.
+    fetch("/api/telemetry", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ kind: "fix_notice_copied" }),
+    }).catch(() => {});
   }
 
   return (

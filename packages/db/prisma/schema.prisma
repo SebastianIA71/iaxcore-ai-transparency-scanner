@@ -79,6 +79,7 @@ model Evaluation {
   findings        Finding[]
   reportArtifacts ReportArtifact[]
   leads           Lead[]
+  feedback        Feedback[]
 
   @@map("evaluations")
   @@index([requesterIpHash, createdAt])
@@ -182,5 +183,37 @@ model Lead {
   createdAt            DateTime @default(now())
 
   @@map("leads")
+  @@index([evaluationId])
+}
+
+// §10-Fase 7: "telemetría" — un registro ligero de interacciones de
+// producto que ninguna otra tabla ya cubre (Evaluation/Lead/ShareLink ya
+// sirven como fuente de las métricas de §13 sobre volumen de escaneos,
+// disposición a pagar y enlaces compartidos). evaluationId es
+// deliberadamente un String suelto, no una relación con FK: un intento de
+// verificación con un ID inválido sigue siendo una señal útil que registrar,
+// y no debe fallar por no apuntar a una Evaluation real.
+model TelemetryEvent {
+  id           String   @id @default(cuid())
+  kind         String
+  evaluationId String?
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now())
+
+  @@map("telemetry_events")
+  @@index([kind, createdAt])
+}
+
+// §10-Fase 7: "feedback estructurado" — valoración de 1 a 5 más un
+// comentario libre opcional, separado del informe igual que Lead.
+model Feedback {
+  id           String     @id @default(cuid())
+  evaluationId String
+  evaluation   Evaluation @relation(fields: [evaluationId], references: [id])
+  rating       Int
+  comment      String?
+  createdAt    DateTime   @default(now())
+
+  @@map("feedback")
   @@index([evaluationId])
 }

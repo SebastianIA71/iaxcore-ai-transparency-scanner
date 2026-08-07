@@ -154,6 +154,95 @@ function DossierUnlock({ evaluationId }: { evaluationId: string }) {
   );
 }
 
+// §10-Fase 7: "feedback estructurado" — un rating de 1 a 5 más un
+// comentario libre opcional, independiente del informe (§15, igual que
+// Lead/DossierUnlock arriba).
+function FeedbackWidget({ evaluationId }: { evaluationId: string }) {
+  const [rating, setRating] = useState<number | null>(null);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    if (!rating) return;
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ evaluationId, rating, comment: comment || undefined }),
+      });
+      if (response.status === 201) {
+        setSuccess(true);
+        return;
+      }
+      setError(T.feedback.errorGeneric);
+    } catch {
+      setError(T.feedback.errorGeneric);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (success) {
+    return (
+      <section className="mt-8 rounded-md border border-neutral-200 p-4">
+        <p className="text-sm text-green-700">{T.feedback.success}</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mt-8 rounded-md border border-neutral-200 p-4">
+      <h2 className="text-sm font-semibold text-neutral-700">{T.feedback.heading}</h2>
+      <form onSubmit={handleSubmit} className="mt-3 flex flex-col gap-3">
+        <fieldset className="flex items-center gap-2">
+          <legend className="mb-1 text-sm font-medium text-neutral-700">{T.feedback.ratingLabel}</legend>
+          {[1, 2, 3, 4, 5].map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setRating(value)}
+              aria-pressed={rating === value}
+              className={`h-9 w-9 rounded-md border text-sm ${
+                rating === value ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 text-neutral-700"
+              }`}
+            >
+              {value}
+            </button>
+          ))}
+        </fieldset>
+        <label className="text-sm font-medium text-neutral-700" htmlFor="feedback-comment">
+          {T.feedback.commentLabel}
+        </label>
+        <textarea
+          id="feedback-comment"
+          value={comment}
+          onChange={(event) => setComment(event.target.value)}
+          placeholder={T.feedback.commentPlaceholder}
+          rows={3}
+          className="rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900"
+        />
+        <button
+          type="submit"
+          disabled={submitting || !rating}
+          className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm text-white disabled:opacity-50"
+        >
+          {submitting ? T.feedback.submitting : T.feedback.submit}
+        </button>
+        {error && (
+          <p className="text-sm text-red-600" role="alert">
+            {error}
+          </p>
+        )}
+      </form>
+    </section>
+  );
+}
+
 export function ReportView({ data }: { data: ReportData }) {
   const pages = data.manifest?.pages ?? [];
   const excludedPages = pages.filter((p) => p.status === "excluded");
@@ -186,9 +275,17 @@ export function ReportView({ data }: { data: ReportData }) {
         )}
       </pre>
 
-      <Link href={`/verify?id=${data.id}`} className="mt-2 inline-block text-sm text-neutral-500 hover:underline">
-        {T.verify.heading} →
-      </Link>
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+        <Link href={`/verify?id=${data.id}`} className="inline-block text-sm text-neutral-500 hover:underline">
+          {T.verify.heading} →
+        </Link>
+        <a
+          href={`/api/scans/${data.id}/pdf`}
+          className="inline-block text-sm text-neutral-500 hover:underline"
+        >
+          {T.scan.pdfDownload} ↓
+        </a>
+      </div>
 
       {/* Explicación en prosa del veredicto — el bloque de arriba usa el
           vocabulario obligatorio de §4, compacto pero poco autoexplicativo
@@ -264,6 +361,7 @@ export function ReportView({ data }: { data: ReportData }) {
       })()}
 
       <DossierUnlock evaluationId={data.id} />
+      <FeedbackWidget evaluationId={data.id} />
     </>
   );
 }

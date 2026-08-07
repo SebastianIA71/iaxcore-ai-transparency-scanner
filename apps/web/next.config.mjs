@@ -25,6 +25,12 @@ const nextConfig = {
       "./node_modules/@sparticuz/chromium/bin/**",
       "../../node_modules/@sparticuz/chromium/bin/**",
     ],
+    // /api/scans/[id]/pdf also launches its own Chromium (to render the
+    // static PDF view), independently of the scan pipeline above.
+    "/api/scans/[id]/pdf": [
+      "./node_modules/@sparticuz/chromium/bin/**",
+      "../../node_modules/@sparticuz/chromium/bin/**",
+    ],
   },
   webpack: (config) => {
     // Esos paquetes importan con extensión ".js" apuntando a archivos

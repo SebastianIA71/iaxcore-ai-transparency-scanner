@@ -1,5 +1,5 @@
 import { buildCanonicalReport, canonicalizeForSigning, verifyCanonicalJsonSignature, type Finding } from "@iaxcore/core";
-import { findFindingsByEvaluation, findLatestReportArtifact } from "@iaxcore/db";
+import { findFindingsByEvaluation, findLatestReportArtifact, recordTelemetryEvent } from "@iaxcore/db";
 import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
@@ -16,20 +16,26 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   const evaluation = await db.evaluation.findUnique({ where: { id } });
   if (!evaluation) {
+    // §10-Fase 7: un ID inválido es igual de interesante para telemetría
+    // que uno válido — no hay FK que lo impida (ver TelemetryEvent).
+    await recordTelemetryEvent(db, { kind: "verify_checked", evaluationId: id, metadata: { reason: "not_found" } });
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
   if (evaluation.status !== "completed") {
+    await recordTelemetryEvent(db, { kind: "verify_checked", evaluationId: id, metadata: { reason: "not_completed" } });
     return NextResponse.json({ verified: false, reason: "not_completed", status: evaluation.status });
   }
 
   const artifact = await findLatestReportArtifact(db, id);
   if (!artifact || !artifact.signature || !artifact.keyId) {
+    await recordTelemetryEvent(db, { kind: "verify_checked", evaluationId: id, metadata: { reason: "no_signature" } });
     return NextResponse.json({ verified: false, reason: "no_signature" });
   }
 
   const expectedKeyId = process.env.SIGNING_KEY_ID;
   const publicKeyBase64 = process.env.SIGNING_PUBLIC_KEY_B64;
   if (!expectedKeyId || !publicKeyBase64 || artifact.keyId !== expectedKeyId) {
+    await recordTelemetryEvent(db, { kind: "verify_checked", evaluationId: id, metadata: { reason: "unknown_key" } });
     return NextResponse.json({ verified: false, reason: "unknown_key", keyId: artifact.keyId });
   }
 
@@ -59,9 +65,12 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const canonicalJson = canonicalizeForSigning(canonicalReport);
   const recomputedHash = `sha256:${createHash("sha256").update(canonicalJson).digest("hex")}`;
   const signatureValid = verifyCanonicalJsonSignature(publicKeyBase64, canonicalReport, artifact.signature);
+  const verified = signatureValid && recomputedHash === artifact.canonicalHash;
+
+  await recordTelemetryEvent(db, { kind: "verify_checked", evaluationId: id, metadata: { verified } });
 
   return NextResponse.json({
-    verified: signatureValid && recomputedHash === artifact.canonicalHash,
+    verified,
     evaluationId: evaluation.id,
     requestedUrl: evaluation.requestedUrl,
     finalUrl: evaluation.finalUrl,

@@ -1,4 +1,4 @@
-import { createShareLink, findLatestReportArtifact } from "@iaxcore/db";
+import { createShareLink, findLatestReportArtifact, recordTelemetryEvent } from "@iaxcore/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 
@@ -29,6 +29,7 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
 
   const expiresAt = new Date(Date.now() + SHARE_LINK_TTL_MS);
   const shareLink = await createShareLink(db, { reportArtifactId: artifact.id, expiresAt });
+  await recordTelemetryEvent(db, { kind: "share_link_created", evaluationId: id });
 
   return NextResponse.json({ token: shareLink.token, path: `/r/${shareLink.token}`, expiresAt }, { status: 201 });
 }

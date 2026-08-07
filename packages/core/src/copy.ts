@@ -145,6 +145,19 @@ export const COPY = {
       shareCopy: "Copiar",
       shareCopied: "Copiado",
       shareError: "No se pudo generar el enlace para compartir. Inténtalo de nuevo.",
+      pdfDownload: "Descargar PDF",
+    },
+    // §10-Fase 7: "feedback estructurado" — un rating de 1 a 5 más un
+    // comentario libre opcional, independiente del informe.
+    feedback: {
+      heading: "¿Te resultó útil este informe?",
+      ratingLabel: "Valoración",
+      commentLabel: "Comentario (opcional)",
+      commentPlaceholder: "¿Algo que deberíamos saber?",
+      submit: "Enviar valoración",
+      submitting: "Enviando…",
+      success: "Gracias por tu valoración.",
+      errorGeneric: "No se pudo enviar la valoración. Inténtalo de nuevo.",
     },
     // §7/§10-Fase 7: "desbloqueo del 'expediente completo' con precio
     // visible... botón de intención 'Solicitar expediente' que captura el
@@ -409,6 +422,17 @@ export const COPY = {
       shareCopy: "Copy",
       shareCopied: "Copied",
       shareError: "Could not generate the share link. Please try again.",
+      pdfDownload: "Download PDF",
+    },
+    feedback: {
+      heading: "Was this report useful?",
+      ratingLabel: "Rating",
+      commentLabel: "Comment (optional)",
+      commentPlaceholder: "Anything we should know?",
+      submit: "Submit rating",
+      submitting: "Submitting…",
+      success: "Thanks for your feedback.",
+      errorGeneric: "Could not submit the rating. Please try again.",
     },
     dossier: {
       heading: "Full dossier",
