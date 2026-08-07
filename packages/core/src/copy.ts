@@ -21,6 +21,19 @@ export const COPY = {
         "Estás hablando con un asistente virtual de inteligencia artificial. Este sistema automatizado está aquí para ayudarte.",
       placementInstructions:
         "Coloca este aviso como primer mensaje visible al abrir el chat, antes de que la persona pueda escribir.",
+      pageHeading: "Generador de aviso de IA",
+      pageIntro:
+        "Genera el mismo aviso accesible que T1 busca al evaluar un canal de interacción con IA. Cópialo y colócalo como primer mensaje visible del chat, antes de que la persona pueda escribir nada.",
+      localeLabel: "Idioma del aviso",
+      localeEs: "Español",
+      localeEn: "Inglés",
+      noticeHeading: "Texto del aviso",
+      snippetHeading: "Fragmento HTML",
+      placementHeading: "Dónde colocarlo",
+      copyButton: "Copiar fragmento HTML",
+      copied: "Copiado",
+      contrastNote:
+        "Los colores por defecto del fragmento alcanzan una relación de contraste de al menos 4.5:1 (AA, WCAG 2.1 §1.4.3) para texto normal.",
     },
     // §4: "lenguaje obligatorio: 'detectado', 'no detectado dentro del
     // alcance', 'no verificable', 'evidencia insuficiente' y 'acción
@@ -176,6 +189,108 @@ export const COPY = {
       publicKeyHeading: "Clave pública de verificación",
       publicKeyNote: "También publicada en /.well-known/iaxcore-keys.json.",
     },
+    // §14/§19: metodología pública — versión, estados, límites del piloto,
+    // comportamiento del banner de consentimiento y referencias normativas
+    // (incluye el AI Omnibus, R6–R8).
+    method: {
+      heading: "Metodología",
+      versionLabel: "Versión del método",
+      version: "0.1",
+      intro:
+        "IAXCORE observa señales públicas sobre transparencia de IA en una URL pública y produce un informe firmado. No determina cumplimiento normativo ni sustituye asesoría profesional — analiza únicamente lo que es observable desde fuera.",
+      statesHeading: "Estados de observación",
+      statesIntro:
+        "Cada sub-hallazgo (t1.channel, t1.ai_evidence, t1.disclosure, t2.visible_labelling) recibe uno de estos estados:",
+      observationExplanations: {
+        detected: "Se encontró la señal correspondiente dentro del alcance analizado.",
+        not_detected:
+          "No se encontró la señal dentro del alcance analizado — no implica que no exista fuera de ese alcance.",
+        partially_detected: "Se encontró evidencia parcial, insuficiente por sí sola para una conclusión completa.",
+        not_assessable: "No se pudo inspeccionar la señal — por ejemplo, un widget bloqueado o inaccesible.",
+        error: "Un error del escáner impidió completar la inspección de esta señal.",
+      },
+      assessmentHeading: "Veredicto de T1",
+      assessmentIntro:
+        "Solo T1 produce un veredicto (assessmentStatus), calculado a partir de sus tres sub-hallazgos por una única función determinista y testeada exhaustivamente:",
+      limitsHeading: "Límites de este piloto",
+      limits: [
+        "T1 solo evalúa un canal de interacción tipo chat o asistente — no cubre formularios, llamadas telefónicas ni canales fuera de la página analizada.",
+        "T2 es informativo: registra etiquetas visibles de contenido generado por IA (leyendas, texto alternativo) en una sola página; no sigue enlaces ni produce un veredicto.",
+        "T3 (procedencia técnica del contenido, por ejemplo C2PA) tiene su contrato definido pero no está implementado en este piloto.",
+        "Se analizan hasta 5 páginas por dominio, seleccionadas de forma determinista.",
+        "El escáner no envía mensajes a los widgets que encuentra, no crea conversaciones ni acepta términos en nombre de quien solicita el escaneo.",
+        "La base de firmas de proveedores de IA es una semilla inicial, no un catálogo exhaustivo — se amplía con el tiempo.",
+      ],
+      consentBannerHeading: "Banner de cookies",
+      consentBanner:
+        "Si el escáner identifica con confianza un banner de cookies de un proveedor conocido, lo acepta dentro de un contexto de navegación aislado y desechable, exclusivo de esa evaluación, para poder continuar la inspección — este comportamiento queda registrado en el informe como consent_interaction. Si no puede identificarlo con confianza suficiente, no interactúa con él y el informe refleja cobertura parcial en vez de forzar una interacción.",
+      referencesHeading: "Referencias normativas",
+      references: [
+        "Reglamento (UE) 2024/1689 (AI Act), artículo 50 — obligaciones de transparencia.",
+        "Reglamento (UE) 2026/1744 (\"AI Omnibus\"), en vigor desde el 27 de julio de 2026, que modifica el Reglamento (UE) 2024/1689.",
+        "Versión consolidada del Reglamento (UE) 2024/1689 a 27 de julio de 2026 (EUR-Lex, CELEX 02024R1689-20260727).",
+        "AI Act Service Desk — cronología de implementación: la transición introducida por el AI Omnibus hasta el 2 de diciembre de 2026 afecta únicamente al marcado técnico del artículo 50.2, no a las obligaciones de transparencia que evalúa T1.",
+      ],
+    },
+    // §14/§19: retención diferenciada (JSON indefinido / capturas 90 días)
+    // y borrado de evidencias — sin sobreclamar automatizaciones que este
+    // piloto todavía no implementa (ver la nota "todayNote" abajo).
+    privacy: {
+      heading: "Privacidad",
+      intro:
+        "IAXCORE analiza páginas públicas y trata de minimizar lo que guarda. Esta página describe qué datos genera un escaneo, cuánto tiempo se conservan y cómo solicitar su eliminación.",
+      whatWeCollectHeading: "Qué se genera al escanear una URL",
+      whatWeCollect: [
+        "La evaluación en sí: URL solicitada, URL final, estado, páginas analizadas y el manifest del escaneo (páginas incluidas/excluidas, peticiones bloqueadas, si se interactuó con un banner de cookies).",
+        "Los hallazgos de T1/T2: textos breves clasificados del canal de interacción encontrado (si lo hay), nunca el HTML completo de la página.",
+        "El informe firmado (hash + firma Ed25519) que permite verificar que el resultado no se alteró.",
+        "Si solicitas el expediente completo: tu email y tu consentimiento explícito de contacto — guardados aparte del informe, nunca mezclados con él.",
+        "Si generas un enlace para compartir: solo el hash del token; el enlace en texto plano se muestra una única vez y no se vuelve a poder recuperar.",
+      ],
+      todayNote:
+        "En este piloto el escáner no captura pantallazos ni imágenes de las páginas visitadas — solo los textos breves ya descritos arriba. Cuando se active la captura de evidencia visual, se aplicará la retención diferenciada de abajo.",
+      retentionHeading: "Retención",
+      retentionReport:
+        "El JSON del informe se conserva indefinidamente — no contiene datos personales, solo señales técnicas sobre la página analizada.",
+      retentionEvidence:
+        "Las capturas de evidencia visual (cuando existan) se purgan a los 90 días, conservando su hash de contenido para que el informe siga siendo verificable aunque la captura ya no esté disponible.",
+      retentionShareLink:
+        "Los enlaces para compartir un informe caducan a los 30 días — siempre por debajo del plazo de retención de evidencia.",
+      deletionHeading: "Eliminación de datos",
+      deletion:
+        "Puedes solicitar la revisión o eliminación de una evaluación concreta, o de los datos de contacto asociados a tu email, escribiendo al contacto de abajo.",
+      contactHeading: "Contacto",
+    },
+    // §14/§19: identidad del rastreador, comportamiento documentado
+    // (incluida la interacción con banners de consentimiento) y contacto
+    // técnico.
+    bot: {
+      heading: "El rastreador de IAXCORE",
+      intro:
+        "Cuando escaneas una URL, IAXCORE visita esa página (y hasta 4 páginas más del mismo dominio) con un navegador automatizado. Esta página documenta cómo se identifica y qué hace.",
+      userAgentHeading: "Identificación",
+      userAgentNote:
+        "El navegador se identifica ante cada sitio con la cabecera User-Agent \"IAXCOREBot/0.1 (+https://iaxcore-ai-transparency-scanner.vercel.app/bot)\".",
+      robotsHeading: "robots.txt",
+      robotsNote:
+        "Antes de analizar cualquier página, el escáner consulta /robots.txt del dominio y respeta el grupo dirigido a \"IAXCOREBot\" si existe, o el grupo general (\"*\") en su defecto. Si robots.txt no existe o no se puede leer, se permite el análisis por defecto — comportamiento estándar de un rastreador.",
+      behaviorHeading: "Comportamiento",
+      behavior: [
+        "Cada evaluación usa un contexto de navegación aislado y desechable, sin sesiones ni cookies de evaluaciones anteriores.",
+        "Analiza como máximo 5 páginas del mismo dominio, seleccionadas de forma determinista.",
+        "Todas las peticiones de red (no solo la página principal) pasan por un filtro que bloquea direcciones internas, de nube o reservadas antes de conectarse.",
+        "Puede aceptar un banner de cookies de un proveedor identificado con confianza, dentro de ese mismo contexto desechable, para poder continuar la inspección — nunca si no lo identifica con confianza suficiente.",
+        "No envía mensajes a widgets de chat, no crea conversaciones, no rellena formularios ni acepta términos en nombre de quien solicitó el escaneo.",
+        "No guarda el HTML completo de las páginas visitadas.",
+      ],
+      optOutHeading: "Cómo excluir tu sitio",
+      optOutNote:
+        "Añade un grupo para \"IAXCOREBot\" en tu robots.txt con las reglas Disallow que quieras aplicar — el rastreador las respeta. También puedes escribirnos directamente.",
+      contactHeading: "Contacto técnico",
+    },
+    contact: {
+      email: "sebastianfont71@gmail.com",
+    },
   },
   en: {
     t1: {
@@ -187,6 +302,18 @@ export const COPY = {
       aiDisclosureNotice:
         "You are chatting with an AI assistant. This automated system is here to help answer your questions.",
       placementInstructions: "Show this notice as the first visible message when the chat opens, before the visitor can type.",
+      pageHeading: "AI disclosure notice generator",
+      pageIntro:
+        "Generate the same accessible notice T1 looks for when evaluating an AI interaction channel. Copy it and place it as the first visible message in the chat, before the visitor can type anything.",
+      localeLabel: "Notice language",
+      localeEs: "Spanish",
+      localeEn: "English",
+      noticeHeading: "Notice text",
+      snippetHeading: "HTML snippet",
+      placementHeading: "Where to place it",
+      copyButton: "Copy HTML snippet",
+      copied: "Copied",
+      contrastNote: "The snippet's default colors reach a contrast ratio of at least 4.5:1 (AA, WCAG 2.1 §1.4.3) for normal text.",
     },
     status: {
       observation: {
@@ -319,6 +446,97 @@ export const COPY = {
       fieldCompletedAt: "Completed",
       publicKeyHeading: "Verification public key",
       publicKeyNote: "Also published at /.well-known/iaxcore-keys.json.",
+    },
+    method: {
+      heading: "Methodology",
+      versionLabel: "Method version",
+      version: "0.1",
+      intro:
+        "IAXCORE observes public signals about AI transparency on a public URL and produces a signed report. It does not determine legal compliance and is not a substitute for professional advice — it only analyzes what's observable from the outside.",
+      statesHeading: "Observation states",
+      statesIntro:
+        "Every sub-finding (t1.channel, t1.ai_evidence, t1.disclosure, t2.visible_labelling) gets one of these states:",
+      observationExplanations: {
+        detected: "The corresponding signal was found within the analyzed scope.",
+        not_detected: "The signal wasn't found within the analyzed scope — this doesn't mean it doesn't exist outside that scope.",
+        partially_detected: "Partial evidence was found, not enough on its own for a full conclusion.",
+        not_assessable: "The signal couldn't be inspected — for example, a widget that was blocked or unreachable.",
+        error: "A scanner error prevented completing the inspection of this signal.",
+      },
+      assessmentHeading: "T1's verdict",
+      assessmentIntro:
+        "Only T1 produces a verdict (assessmentStatus), computed from its three sub-findings by a single, deterministic, thoroughly tested function:",
+      limitsHeading: "Limits of this pilot",
+      limits: [
+        "T1 only evaluates a chat/assistant-style interaction channel — it doesn't cover forms, phone calls, or channels outside the analyzed page.",
+        "T2 is informative: it records visible labels for AI-generated content (captions, alt text) on a single page; it doesn't follow links or produce a verdict.",
+        "T3 (technical content provenance, e.g. C2PA) has its contract defined but isn't implemented in this pilot.",
+        "Up to 5 pages per domain are analyzed, chosen deterministically.",
+        "The scanner never sends messages to the widgets it finds, never starts conversations, and never accepts terms on behalf of whoever requested the scan.",
+        "The AI-provider signature base is a starting seed, not an exhaustive catalog — it grows over time.",
+      ],
+      consentBannerHeading: "Cookie banner",
+      consentBanner:
+        "If the scanner confidently identifies a cookie banner from a known provider, it accepts it inside an isolated, disposable browsing context scoped to that one evaluation, so it can keep inspecting the page — this is logged in the report as consent_interaction. If it can't identify one with enough confidence, it leaves it untouched and the report reflects partial coverage instead of forcing an interaction.",
+      referencesHeading: "Regulatory references",
+      references: [
+        "Regulation (EU) 2024/1689 (AI Act), Article 50 — transparency obligations.",
+        "Regulation (EU) 2026/1744 (\"AI Omnibus\"), in force since 27 July 2026, amending Regulation (EU) 2024/1689.",
+        "Consolidated version of Regulation (EU) 2024/1689 as of 27 July 2026 (EUR-Lex, CELEX 02024R1689-20260727).",
+        "AI Act Service Desk — implementation timeline: the transition introduced by the AI Omnibus, running until 2 December 2026, applies only to the technical marking obligations in Article 50.2, not to the transparency obligations T1 evaluates.",
+      ],
+    },
+    privacy: {
+      heading: "Privacy",
+      intro:
+        "IAXCORE analyzes public pages and tries to minimize what it stores. This page describes what data a scan generates, how long it's kept, and how to request its deletion.",
+      whatWeCollectHeading: "What a URL scan generates",
+      whatWeCollect: [
+        "The evaluation itself: requested URL, final URL, status, pages analyzed, and the scan manifest (included/excluded pages, blocked requests, whether a cookie banner was interacted with).",
+        "T1/T2 findings: short classified text snippets from any interaction channel found, never the page's full HTML.",
+        "The signed report (hash + Ed25519 signature) that lets anyone verify the result wasn't altered.",
+        "If you request the full dossier: your email and your explicit contact consent — stored separately from the report, never mixed with it.",
+        "If you generate a share link: only the token's hash; the plaintext link is shown once and can't be retrieved again.",
+      ],
+      todayNote:
+        "In this pilot the scanner doesn't capture screenshots or images of the pages it visits — only the short text snippets described above. Once visual evidence capture is turned on, the differentiated retention below will apply to it.",
+      retentionHeading: "Retention",
+      retentionReport:
+        "The report JSON is kept indefinitely — it contains no personal data, only technical signals about the analyzed page.",
+      retentionEvidence:
+        "Visual evidence captures (once they exist) are purged after 90 days, keeping their content hash so the report stays verifiable even after the capture itself is gone.",
+      retentionShareLink: "Share links expire after 30 days — always shorter than the evidence retention window.",
+      deletionHeading: "Data deletion",
+      deletion:
+        "You can request review or deletion of a specific evaluation, or of the contact data tied to your email, by writing to the contact below.",
+      contactHeading: "Contact",
+    },
+    bot: {
+      heading: "IAXCORE's crawler",
+      intro:
+        "When you scan a URL, IAXCORE visits that page (and up to 4 more pages on the same domain) with an automated browser. This page documents how it identifies itself and what it does.",
+      userAgentHeading: "Identification",
+      userAgentNote:
+        "The browser identifies itself to every site with the User-Agent header \"IAXCOREBot/0.1 (+https://iaxcore-ai-transparency-scanner.vercel.app/bot)\".",
+      robotsHeading: "robots.txt",
+      robotsNote:
+        "Before analyzing any page, the scanner checks the domain's /robots.txt and honors the group addressed to \"IAXCOREBot\" if one exists, or the general (\"*\") group otherwise. If robots.txt doesn't exist or can't be read, analysis is allowed by default — standard crawler behavior.",
+      behaviorHeading: "Behavior",
+      behavior: [
+        "Every evaluation uses an isolated, disposable browsing context, with no sessions or cookies carried over from previous evaluations.",
+        "Analyzes at most 5 pages on the same domain, chosen deterministically.",
+        "Every network request (not just the main page) passes through a filter that blocks internal, cloud, or reserved addresses before connecting.",
+        "May accept a cookie banner from a confidently identified provider, inside that same disposable context, to keep inspecting the page — never if it can't identify one with enough confidence.",
+        "Never sends messages to chat widgets, never starts conversations, never fills out forms, and never accepts terms on behalf of whoever requested the scan.",
+        "Doesn't store the full HTML of the pages it visits.",
+      ],
+      optOutHeading: "How to opt your site out",
+      optOutNote:
+        "Add a group for \"IAXCOREBot\" to your robots.txt with whichever Disallow rules you want applied — the crawler honors them. You can also write to us directly.",
+      contactHeading: "Technical contact",
+    },
+    contact: {
+      email: "sebastianfont71@gmail.com",
     },
   },
 } as const;

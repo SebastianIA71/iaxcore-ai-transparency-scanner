@@ -37,8 +37,17 @@ export async function launchSecureBrowser(args: string[] = []): Promise<Browser>
   return chromium.launch({ headless: true, args });
 }
 
+// Distinto del token corto que usa parseRobotsTxt() para emparejar el
+// grupo de robots.txt (CRAWLER_USER_AGENT en robots.ts, p. ej.
+// "User-agent: IAXCOREBot") — esta es la cabecera HTTP real que ve cada
+// sitio visitado, con versión y URL de contacto, siguiendo la convención
+// habitual de crawlers identificables (p. ej. Googlebot). Documentada en
+// /bot (§14, §19: "documenta este comportamiento públicamente").
+export const CRAWLER_HTTP_USER_AGENT =
+  "IAXCOREBot/0.1 (+https://iaxcore-ai-transparency-scanner.vercel.app/bot)";
+
 export async function createSecureContext(browser: Browser): Promise<BrowserContext> {
-  return browser.newContext();
+  return browser.newContext({ userAgent: CRAWLER_HTTP_USER_AGENT });
 }
 
 export type RequestBlockReason =
