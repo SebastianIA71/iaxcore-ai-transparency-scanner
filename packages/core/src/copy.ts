@@ -126,6 +126,12 @@ export const COPY = {
         "aria-label": "etiqueta de accesibilidad",
         "caption-text": "texto junto a una imagen",
       },
+      // §14: "/r/{shareToken} — informe privado compartible y verificable".
+      shareButton: "Compartir informe",
+      shareLoading: "Generando enlace…",
+      shareCopy: "Copiar",
+      shareCopied: "Copiado",
+      shareError: "No se pudo generar el enlace para compartir. Inténtalo de nuevo.",
     },
     // §7/§10-Fase 7: "desbloqueo del 'expediente completo' con precio
     // visible... botón de intención 'Solicitar expediente' que captura el
@@ -271,6 +277,11 @@ export const COPY = {
         "aria-label": "accessibility label",
         "caption-text": "text next to an image",
       },
+      shareButton: "Share report",
+      shareLoading: "Generating link…",
+      shareCopy: "Copy",
+      shareCopied: "Copied",
+      shareError: "Could not generate the share link. Please try again.",
     },
     dossier: {
       heading: "Full dossier",

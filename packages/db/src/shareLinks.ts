@@ -41,3 +41,11 @@ export async function resolveShareLink(db: ShareLinksDb, token: string) {
 export async function revokeShareLink(db: ShareLinksDb, id: string): Promise<void> {
   await db.shareLink.update({ where: { id }, data: { revokedAt: new Date() } });
 }
+
+// Separada de resolveShareLink a propósito: resolver un token para
+// comprobar validez (p. ej. antes de crear uno nuevo) no debería, por sí
+// solo, contar como una visita real — el caller decide cuándo de verdad se
+// mostró el informe.
+export async function touchShareLinkAccess(db: ShareLinksDb, id: string): Promise<void> {
+  await db.shareLink.update({ where: { id }, data: { lastAccessedAt: new Date() } });
+}
