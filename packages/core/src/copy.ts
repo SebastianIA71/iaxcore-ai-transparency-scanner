@@ -146,6 +146,19 @@ export const COPY = {
       shareCopied: "Copiado",
       shareError: "No se pudo generar el enlace para compartir. Inténtalo de nuevo.",
       pdfDownload: "Descargar PDF",
+      // §10-Fase 4: "Rescan" — repetir el escaneo de la misma URL tras
+      // aplicar un fix, y comparar el veredicto T1 de antes/después.
+      rescanButton: "Volver a escanear esta URL",
+      rescanSubmitting: "Enviando…",
+      rescanErrorRateLimited: "Se alcanzó el límite de escaneos para esta conexión. Inténtalo de nuevo más tarde.",
+      rescanErrorGeneric: "No se pudo iniciar el rescan. Inténtalo de nuevo.",
+      rescanOfNote: "Este informe es un rescan de una evaluación anterior.",
+      viewOriginalScan: "Ver evaluación original",
+      viewLatestRescan: "Ver rescan más reciente",
+      rescanComparisonHeading: "Comparación con la evaluación anterior",
+      rescanComparisonChanged: "El resultado de T1 cambió",
+      rescanComparisonUnchanged: "El resultado de T1 no cambió",
+      rescanComparisonResolved: "El aviso recomendado ya está en su sitio: T1 pasó de acción recomendada a alineado.",
     },
     // §10-Fase 7: "feedback estructurado" — un rating de 1 a 5 más un
     // comentario libre opcional, independiente del informe.
@@ -423,6 +436,17 @@ export const COPY = {
       shareCopied: "Copied",
       shareError: "Could not generate the share link. Please try again.",
       pdfDownload: "Download PDF",
+      rescanButton: "Rescan this URL",
+      rescanSubmitting: "Submitting…",
+      rescanErrorRateLimited: "Scan limit reached for this connection. Please try again later.",
+      rescanErrorGeneric: "Could not start the rescan. Please try again.",
+      rescanOfNote: "This report is a rescan of an earlier evaluation.",
+      viewOriginalScan: "View original evaluation",
+      viewLatestRescan: "View latest rescan",
+      rescanComparisonHeading: "Comparison with the previous evaluation",
+      rescanComparisonChanged: "The T1 result changed",
+      rescanComparisonUnchanged: "The T1 result did not change",
+      rescanComparisonResolved: "The recommended notice is now in place: T1 moved from action recommended to aligned.",
     },
     feedback: {
       heading: "Was this report useful?",

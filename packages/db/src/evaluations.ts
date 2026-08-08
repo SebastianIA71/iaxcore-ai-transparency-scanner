@@ -7,6 +7,9 @@ export interface CreateEvaluationInput {
   methodVersion: string;
   pagesRequested: number;
   requesterIpHash: string;
+  // §10-Fase 4: presente solo cuando esta evaluación es un rescan de otra
+  // (misma requestedUrl) — ver rescan.ts en packages/core.
+  rescanOfEvaluationId?: string;
 }
 
 export interface CompleteEvaluationInput {
@@ -42,6 +45,7 @@ export function createEvaluation(db: EvaluationsDb, input: CreateEvaluationInput
       methodVersion: input.methodVersion,
       pagesRequested: input.pagesRequested,
       requesterIpHash: input.requesterIpHash,
+      rescanOfEvaluationId: input.rescanOfEvaluationId,
       status: "queued",
       pagesAnalyzed: 0,
       manifest: {},

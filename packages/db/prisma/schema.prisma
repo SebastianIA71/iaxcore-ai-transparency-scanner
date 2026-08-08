@@ -75,6 +75,14 @@ model Evaluation {
   // sí solo no puede evitar.
   requesterIpHash String
 
+  // §10-Fase 4: enlaza un rescan con la evaluación que lo originó — misma
+  // requestedUrl, evaluación nueva de todas formas (§7: nunca se edita la
+  // anterior). Opcional: la inmensa mayoría de evaluaciones no son un
+  // rescan de nada.
+  rescanOfEvaluationId String?
+  rescanOf             Evaluation?  @relation("EvaluationRescan", fields: [rescanOfEvaluationId], references: [id])
+  rescans              Evaluation[] @relation("EvaluationRescan")
+
   scanJob         ScanJob?
   findings        Finding[]
   reportArtifacts ReportArtifact[]
@@ -84,6 +92,7 @@ model Evaluation {
   @@map("evaluations")
   @@index([requesterIpHash, createdAt])
   @@index([requesterIpHash, status])
+  @@index([rescanOfEvaluationId])
 }
 
 // Cola PostgreSQL con SKIP LOCKED (§8, §10-Fase 1) — sin Redis.

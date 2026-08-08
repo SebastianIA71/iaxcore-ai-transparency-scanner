@@ -42,6 +42,13 @@ interface T2Signal {
   matchedText: string;
 }
 
+interface RescanComparison {
+  before: keyof typeof T.status.assessment;
+  after: keyof typeof T.status.assessment;
+  changed: boolean;
+  resolvedActionRecommended: boolean;
+}
+
 export interface ReportData {
   id: string;
   requestedUrl: string;
@@ -51,6 +58,9 @@ export interface ReportData {
   pagesAnalyzed: number;
   manifest?: Manifest;
   findings: Finding[];
+  rescanOfEvaluationId?: string | null;
+  latestRescanId?: string | null;
+  rescanComparison?: RescanComparison | null;
 }
 
 // §6: los tres sub-findings de T1, en el orden del ejemplo de la spec
@@ -243,6 +253,58 @@ function FeedbackWidget({ evaluationId }: { evaluationId: string }) {
   );
 }
 
+// §10-Fase 4: "Rescan" — repite el escaneo de la misma URL (típicamente
+// tras aplicar el aviso generado en /fix/ai-disclosure) y enlaza la nueva
+// evaluación a esta vía rescanOfEvaluationId. Vive en ReportView (no en
+// scan/[id]/page.tsx como ShareButton) para que también esté disponible al
+// ver un informe compartido en /r/[token] — a diferencia de compartir, "¿ya
+// se corrigió?" tiene sentido para cualquiera que vea el informe, no solo
+// para quien lo lanzó.
+function RescanButton({ evaluationId }: { evaluationId: string }) {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleRescan() {
+    setSubmitting(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/scans/${evaluationId}/rescan`, { method: "POST" });
+      if (response.status === 201) {
+        const { id } = (await response.json()) as { id: string };
+        window.location.href = `/scan/${id}`;
+        return;
+      }
+      if (response.status === 429) {
+        setError(T.scan.rescanErrorRateLimited);
+      } else {
+        setError(T.scan.rescanErrorGeneric);
+      }
+    } catch {
+      setError(T.scan.rescanErrorGeneric);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="mt-3">
+      <button
+        type="button"
+        onClick={handleRescan}
+        disabled={submitting}
+        className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-700 disabled:opacity-50"
+      >
+        {submitting ? T.scan.rescanSubmitting : T.scan.rescanButton}
+      </button>
+      {error && (
+        <p className="mt-2 text-sm text-red-600" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function ReportView({ data }: { data: ReportData }) {
   const pages = data.manifest?.pages ?? [];
   const excludedPages = pages.filter((p) => p.status === "excluded");
@@ -285,7 +347,39 @@ export function ReportView({ data }: { data: ReportData }) {
         >
           {T.scan.pdfDownload} ↓
         </a>
+        {data.rescanOfEvaluationId && (
+          <Link href={`/scan/${data.rescanOfEvaluationId}`} className="inline-block text-sm text-neutral-500 hover:underline">
+            {T.scan.viewOriginalScan} →
+          </Link>
+        )}
+        {data.latestRescanId && (
+          <Link href={`/scan/${data.latestRescanId}`} className="inline-block text-sm text-neutral-500 hover:underline">
+            {T.scan.viewLatestRescan} →
+          </Link>
+        )}
       </div>
+
+      {data.rescanOfEvaluationId && (
+        <p className="mt-2 text-sm text-neutral-500">{T.scan.rescanOfNote}</p>
+      )}
+
+      {/* §10-Fase 4: comparación T1 antes/después — solo aparece cuando esta
+          evaluación es un rescan y ambas evaluaciones ya tienen un veredicto
+          T1 que comparar (ver compareT1Assessments en packages/core). */}
+      {data.rescanComparison && (
+        <section className="mt-4 rounded-md border border-neutral-200 p-4">
+          <h2 className="text-sm font-semibold text-neutral-700">{T.scan.rescanComparisonHeading}</h2>
+          <p className="mt-2 text-sm text-neutral-600">
+            {T.status.assessment[data.rescanComparison.before]} → {T.status.assessment[data.rescanComparison.after]}
+          </p>
+          <p className="mt-1 text-sm text-neutral-500">
+            {data.rescanComparison.changed ? T.scan.rescanComparisonChanged : T.scan.rescanComparisonUnchanged}
+          </p>
+          {data.rescanComparison.resolvedActionRecommended && (
+            <p className="mt-1 text-sm text-green-700">{T.scan.rescanComparisonResolved}</p>
+          )}
+        </section>
+      )}
 
       {/* Explicación en prosa del veredicto — el bloque de arriba usa el
           vocabulario obligatorio de §4, compacto pero poco autoexplicativo
@@ -360,6 +454,7 @@ export function ReportView({ data }: { data: ReportData }) {
         );
       })()}
 
+      <RescanButton evaluationId={data.id} />
       <DossierUnlock evaluationId={data.id} />
       <FeedbackWidget evaluationId={data.id} />
     </>
