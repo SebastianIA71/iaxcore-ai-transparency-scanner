@@ -7,4 +7,5 @@ export * from "./queue.js";
 export * from "./reportArtifacts.js";
 export * from "./shareLinks.js";
 export * from "./rateLimit.js";
+export * from "./staleRecovery.js";
 export * from "./telemetry.js";

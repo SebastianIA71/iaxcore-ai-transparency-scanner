@@ -14,6 +14,7 @@ function fakeDb(counts: { concurrent: number; daily: number }, createImpl?: () =
     scanJob: {
       create: vi.fn(async () => ({ id: "job_1" })),
     },
+    $executeRaw: vi.fn(async () => 0),
   };
   // $transaction ejecuta el callback pasándole el mismo fake db como "tx" —
   // suficiente para probar la orquestación sin una base de datos real.
@@ -77,5 +78,12 @@ describe("createRateLimitedScan — Evaluation + ScanJob atómicos, cierra la ca
       throw new Error("boom");
     });
     await expect(createRateLimitedScan(db, input, { dailyQuota: 5 })).rejects.toThrow("boom");
+  });
+
+  it("recupera evaluaciones abandonadas antes de contar concurrencia", async () => {
+    const db = fakeDb({ concurrent: 0, daily: 0 });
+    await createRateLimitedScan(db, input, { dailyQuota: 5 });
+    // reapStaleEvaluations hace dos escrituras (evaluations, luego scan_jobs).
+    expect(db.$executeRaw).toHaveBeenCalledTimes(2);
   });
 });

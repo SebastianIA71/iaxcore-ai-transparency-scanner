@@ -1,7 +1,13 @@
 import { Prisma, type PrismaClient } from "./generated/prisma/client.js";
 import { createEvaluation, type CreateEvaluationInput } from "./evaluations.js";
+import { reapStaleEvaluations } from "./staleRecovery.js";
 
 type RateLimitDb = Pick<PrismaClient, "evaluation">;
+
+// Por encima del maxDuration=60 de apps/web/app/api/scans/route.ts con
+// margen: cualquier evaluación que siga "running" más allá de esto no está
+// avanzando de verdad, la función que la procesaba ya fue matada.
+const DEFAULT_STALE_EVALUATION_MS = 120_000;
 
 export type RateLimitViolation = "concurrent_scan" | "daily_quota";
 
@@ -17,6 +23,7 @@ export class RateLimitExceededError extends Error {
 
 export interface RateLimitConfig {
   dailyQuota: number;
+  staleEvaluationAfterMs?: number;
 }
 
 export async function assertWithinRateLimit(
@@ -57,6 +64,10 @@ export async function createRateLimitedScan(
   input: CreateEvaluationInput,
   config: RateLimitConfig,
 ) {
+  // Antes de contar concurrencia: recupera cualquier evaluación abandonada
+  // por una función matada a mitad de escaneo, para que no bloquee esta IP
+  // (ni ninguna otra) para siempre — ver el comentario en staleRecovery.ts.
+  await reapStaleEvaluations(db, config.staleEvaluationAfterMs ?? DEFAULT_STALE_EVALUATION_MS);
   await assertWithinRateLimit(db, input.requesterIpHash, config);
   try {
     return await db.$transaction(async (tx) => {
